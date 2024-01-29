@@ -19,6 +19,9 @@
 # misc
 .DS_Store
 *.pem
+/public/master.csv
+/public/master-modified.csv
+/public/votes.json
 
 # debug
 npm-debug.log*
