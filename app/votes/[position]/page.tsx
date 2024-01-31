@@ -2,7 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
-import TableComponent from "../table";
+import TableComponent from "../_components/table";
 import {
     pPositions,
     evpPositions,
