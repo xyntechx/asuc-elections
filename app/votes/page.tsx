@@ -2,7 +2,7 @@ import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
 import { positionTypes } from "@/utils";
 
-const Tables = () => {
+const Votes = () => {
     return (
         <main className="w-full flex flex-col items-center justify-start gap-y-4">
             <div className="w-full flex items-center justify-start pb-2">
@@ -32,4 +32,4 @@ const Tables = () => {
     );
 };
 
-export default Tables;
+export default Votes;
