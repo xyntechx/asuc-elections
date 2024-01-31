@@ -46,7 +46,7 @@ const TableComponent = ({ fileContent, positions }: IProps) => {
                 setIsLoading(false);
             }
         );
-    }, []);
+    }, [fileContent]);
 
     return !isLoading ? (
         <Table>
@@ -54,7 +54,7 @@ const TableComponent = ({ fileContent, positions }: IProps) => {
                 <TableRow>
                     <TableHead>ID</TableHead>
                     {positions.map((p) => (
-                        <TableHead>{p}</TableHead>
+                        <TableHead key={p}>{p}</TableHead>
                     ))}
                 </TableRow>
             </TableHeader>
@@ -66,7 +66,7 @@ const TableComponent = ({ fileContent, positions }: IProps) => {
                                 {row["SubmissionId"]}
                             </TableCell>
                             {positions.map((p) => (
-                                <TableCell className="min-w-[150px]">
+                                <TableCell key={p} className="min-w-[150px]">
                                     {row[p as keyof Vote]}
                                 </TableCell>
                             ))}
