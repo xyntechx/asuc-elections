@@ -8,14 +8,14 @@ import {
     DrawerTitle,
     DrawerTrigger,
 } from "@/components/ui/drawer";
-import { Button } from "../ui/button";
+import { Button, buttonVariants } from "../ui/button";
 import UploadFile from "./UploadFile";
 
 const UploadDrawer = () => {
     return (
         <Drawer>
-            <DrawerTrigger>
-                <Button>Upload</Button>
+            <DrawerTrigger className={buttonVariants({ variant: "default" })}>
+                Upload
             </DrawerTrigger>
             <DrawerContent>
                 <DrawerHeader>
@@ -28,7 +28,7 @@ const UploadDrawer = () => {
                 <DrawerFooter>
                     <UploadFile />
                     <DrawerClose>
-                        <Button variant="outline">Cancel</Button>
+                        <Button variant="outline">Close</Button>
                     </DrawerClose>
                 </DrawerFooter>
             </DrawerContent>
