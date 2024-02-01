@@ -25,13 +25,13 @@ export default function FileList({ trigger }: { trigger: boolean }) {
     }, [trigger]);
 
     return (
-        <div className="w-1/2 flex flex-col items-center justify-center gap-y-4 p-4">
+        <div className="w-fit flex flex-col items-center justify-center gap-y-1 text-gray-300 text-center text-sm">
             <p className="underline">Saved Files</p>
-            {storedFiles ? (
-                storedFiles.map((f) => <p key={f.id}>{f.name}</p>)
-            ) : (
-                <p>Loading...</p>
-            )}
+            <div className="w-full grid grid-cols-3 gap-x-4 gap-y-1">
+                {storedFiles &&
+                    storedFiles.map((f) => <p key={f.id}>{f.name}</p>)}
+            </div>
+            {!storedFiles && <p>Loading...</p>}
         </div>
     );
 }

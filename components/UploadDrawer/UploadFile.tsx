@@ -2,8 +2,8 @@
 
 import { createClient } from "@/utils/supabase/client";
 import { useState } from "react";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
+import { Input } from "../ui/input";
+import { Button } from "../ui/button";
 import FileList from "./FileList";
 
 export default function UploadFile() {
@@ -37,9 +37,8 @@ export default function UploadFile() {
     };
 
     return (
-        <div className="w-1/2 flex flex-col items-center justify-center gap-y-4 p-4 border border-gray-200 rounded-md">
-            <p>Upload election results</p>
-            <div className="w-[300px] flex flex-col items-center justify-center gap-y-2">
+        <div className="w-full flex flex-col items-center justify-center gap-y-4 p-4">
+            <div className="w-1/2 flex flex-col items-center justify-center gap-y-2">
                 <Input
                     type="text"
                     placeholder="Enter filename..."

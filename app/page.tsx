@@ -1,10 +1,10 @@
-import UploadFile from "@/components/UploadFile";
+import UploadDrawer from "@/components/UploadDrawer";
 
 export default function Home() {
     return (
-        <main className="w-full flex flex-col items-center justify-start">
-            <h1 className="text-lg">ASUC Tabulator</h1>
-            <UploadFile />
+        <main className="w-full min-h-screen flex flex-col items-center justify-center gap-y-4">
+            <h1 className="text-lg font-bold">ASUC Tabulator</h1>
+            <UploadDrawer />
         </main>
     );
 }

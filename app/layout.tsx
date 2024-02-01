@@ -31,7 +31,7 @@ export default function RootLayout({
                     fontSans.variable
                 )}
             >
-                <main className="w-screen min-h-screen flex flex-col items-center justify-start">
+                <main className="w-screen min-h-screen flex flex-col items-center justify-start p-4">
                     {children}
                 </main>
             </body>
