@@ -17,10 +17,16 @@ export default function Race() {
 
     const [selectedPosition, setSelectedPosition] = useState<string>("");
     const [votes, setVotes] = useState<string[][]>([]);
+    const [votingRounds, setVotingRounds] = useState<
+        {
+            [key: string]: number;
+        }[]
+    >([]);
     const [candidateToCount, setCandidateToCount] = useState<{
         [key: string]: number;
     }>({});
     const [totalVoteCount, setTotalVoteCount] = useState(0);
+    const [winner, setWinner] = useState<string | null>(null);
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -115,7 +121,6 @@ export default function Race() {
                     }
 
                     setVotes(relevantVotes);
-                    // setTotalVoteCount(relevantVotes.length);
                 }
             );
 
@@ -126,31 +131,55 @@ export default function Race() {
     }, [selectedPosition, csvColumns, fileblob]);
 
     useEffect(() => {
-        const currCandidateToCount: { [key: string]: number } = {};
+        if (votes.length > 0) {
+            const currCandidateToCount: { [key: string]: number } = {};
 
-        for (const vote of votes) {
-            if (vote.length === 0) {
-                continue;
+            for (const vote of votes) {
+                if (vote.length === 0) {
+                    continue;
+                }
+
+                const candidate = vote[0];
+                if (!Object.keys(currCandidateToCount).includes(candidate)) {
+                    currCandidateToCount[candidate] = 0;
+                }
+                currCandidateToCount[candidate]++;
             }
 
-            const candidate = vote[0];
-            if (!Object.keys(currCandidateToCount).includes(candidate)) {
-                currCandidateToCount[candidate] = 0;
+            const sortedCandidateToCount =
+                sortDescCandidateToCount(currCandidateToCount);
+
+            setCandidateToCount(sortedCandidateToCount);
+
+            if (votingRounds.length === 0) {
+                setTotalVoteCount(
+                    Object.values(sortedCandidateToCount).reduce(
+                        (prev, n) => prev + n,
+                        0
+                    )
+                );
             }
-            currCandidateToCount[candidate]++;
+
+            setVotingRounds([...votingRounds, sortedCandidateToCount]);
+        }
+    }, [votes]);
+
+    useEffect(() => {
+        if (Object.keys(candidateToCount).length === 1) {
+            setWinner(Object.keys(candidateToCount)[0]);
         }
 
-        const sortedCandidateToCount =
-            sortDescCandidateToCount(currCandidateToCount);
+        const threshold = (totalVoteCount + 1) / 2;
 
-        setCandidateToCount(sortedCandidateToCount);
-        setTotalVoteCount(
-            Object.values(sortedCandidateToCount).reduce(
-                (prev, n) => prev + n,
-                0
-            )
-        );
-    }, [votes]);
+        for (const candidate in candidateToCount) {
+            const points = candidateToCount[candidate];
+
+            if (points >= threshold) {
+                setWinner(candidate);
+                return;
+            }
+        }
+    }, [candidateToCount]);
 
     const sortDescCandidateToCount = (obj: { [key: string]: number }) => {
         let candidateCountArr: any = [];
@@ -163,8 +192,6 @@ export default function Race() {
             (a: any, b: any) => b[1] - a[1]
         );
 
-        console.log(candidateCountArr);
-
         const result: { [key: string]: number } = {};
 
         for (const pair of candidateCountArr) {
@@ -176,21 +203,13 @@ export default function Race() {
 
     const resumeAnalysis = () => {
         const leastPointCount = Math.min(...Object.values(candidateToCount));
-        const worstCandidates = Object.keys(candidateToCount).filter(
+        let worstCandidates = Object.keys(candidateToCount).filter(
             (c) => candidateToCount[c] === leastPointCount
         );
 
         const newVotes = [...votes];
 
-        if (worstCandidates.length === newVotes.length) {
-            // TODO: Check 3.3.9
-        }
-
-        for (const candidate in candidateToCount) {
-            if (worstCandidates.includes(candidate)) {
-                delete candidateToCount[candidate];
-            }
-        }
+        worstCandidates = checkForAllTie(worstCandidates, newVotes, 0);
 
         for (let i = 0; i < newVotes.length; i++) {
             if (worstCandidates.includes(newVotes[i][0])) {
@@ -204,6 +223,33 @@ export default function Race() {
         setVotes(newVotes);
     };
 
+    const checkForAllTie = (
+        worstCandidates: string[],
+        newVotes: string[][],
+        index: number
+    ): string[] => {
+        if (worstCandidates.length === newVotes.length) {
+            if (index === votingRounds.length) {
+                return [
+                    worstCandidates[
+                        Math.floor(Math.random() * worstCandidates.length)
+                    ],
+                ];
+            }
+
+            const newLeastPointCount = Math.min(
+                ...Object.values(votingRounds[index])
+            );
+            const newWorstCandidates = Object.keys(votingRounds[index]).filter(
+                (c) => votingRounds[index][c] === newLeastPointCount
+            );
+
+            return checkForAllTie(newWorstCandidates, newVotes, index + 1);
+        }
+
+        return worstCandidates;
+    };
+
     return (
         <main className="w-full min-h-screen flex flex-col items-center justify-start gap-y-2">
             <div className="w-full h-fit flex flex-row items-center justify-center gap-x-4">
@@ -215,7 +261,11 @@ export default function Race() {
                     {positions.map((pos) => (
                         <Button
                             key={pos}
-                            onClick={() => setSelectedPosition(pos)}
+                            onClick={() => {
+                                setSelectedPosition(pos);
+                                setWinner(null);
+                                setVotingRounds([]);
+                            }}
                             className="w-[300px]"
                         >
                             {pos}
@@ -224,7 +274,7 @@ export default function Race() {
                 </>
             )}
             {isLoading && <p>Loading...</p>}
-            <p>Total Votes: {totalVoteCount}</p>
+            {winner && <p>Elected person: {winner}</p>}
             {Object.keys(candidateToCount).map((candidate) => (
                 <div key={candidate} className="w-full">
                     <p>{candidate}</p>
@@ -238,7 +288,11 @@ export default function Race() {
                     </p>
                 </div>
             ))}
-            <Button onClick={() => resumeAnalysis()}>Resume Analysis</Button>
+            {votingRounds.length > 0 && !winner && (
+                <Button onClick={() => resumeAnalysis()}>
+                    Resume Analysis
+                </Button>
+            )}
         </main>
     );
 }
