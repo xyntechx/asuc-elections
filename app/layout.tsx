@@ -1,30 +1,39 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import { Inter as FontSans } from "next/font/google";
 import { cn } from "@/lib/utils";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
+const defaultUrl = process.env.VERCEL_URL
+    ? `https://${process.env.VERCEL_URL}`
+    : "http://localhost:3000";
 
-export const metadata: Metadata = {
-    title: "ASUC Tabulator",
+export const metadata = {
+    metadataBase: new URL(defaultUrl),
+    title: "ASUC Elections Tabulator",
     description: "Calculate and visualize ASUC election results",
     authors: { name: "Nyx Iskandar", url: "https://xyntechx.com" },
 };
 
+const fontSans = FontSans({
+    subsets: ["latin"],
+    variable: "--font-sans",
+});
+
 export default function RootLayout({
     children,
-}: Readonly<{
+}: {
     children: React.ReactNode;
-}>) {
+}) {
     return (
         <html lang="en">
             <body
                 className={cn(
-                    "w-screen min-h-screen bg-background font-sans antialiased p-4",
-                    inter.variable
+                    "bg-background font-sans antialiased",
+                    fontSans.variable
                 )}
             >
-                {children}
+                <main className="w-screen min-h-screen flex flex-col items-center justify-start p-4">
+                    {children}
+                </main>
             </body>
         </html>
     );
