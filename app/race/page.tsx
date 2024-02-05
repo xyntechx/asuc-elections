@@ -135,7 +135,17 @@ export default function Race() {
                                     votedFor = line[col];
                                 }
 
-                                if (votedFor) names.push(votedFor);
+                                if (votedFor)
+                                    names.push(
+                                        votedFor
+                                            .split(" ")
+                                            .map(
+                                                (w) =>
+                                                    w[0].toUpperCase() +
+                                                    w.slice(1)
+                                            )
+                                            .join(" ")
+                                    );
                             }
                         }
                         relevantVotes.push(names);
