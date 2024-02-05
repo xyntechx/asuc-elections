@@ -39,7 +39,17 @@ export default function Race() {
             setFileblob(data);
         };
 
-        if (filename.length > 0) downloadCSV();
+        if (filename.length > 0) {
+            // Reset states
+            setSelectedPosition("");
+            setVotes([]);
+            setVotingRounds([]);
+            setCandidateToCount({});
+            setTotalVoteCount(0);
+            setWinner(null);
+
+            downloadCSV();
+        }
     }, [filename]);
 
     useEffect(() => {
@@ -90,11 +100,13 @@ export default function Race() {
                 {
                     delimiter: ",",
                     columns: csvColumns,
+                    group_columns_by_name: true, // due to multiple columns of the same name (e.g. President - 1)
                     fromLine: 2, // exclude first line (headers)
                     cast: (columnValue, context) => {
                         if (
                             context.column.toString().split(" - ")[0] ===
-                            selectedPosition
+                                selectedPosition &&
+                            columnValue.length > 0
                         ) {
                             return columnValue.split("|")[0].trim();
                         }
@@ -114,7 +126,26 @@ export default function Race() {
                         const names = [];
                         for (const col in line) {
                             if (line[col]) {
-                                names.push(line[col]);
+                                let votedFor: string;
+                                try {
+                                    votedFor = line[col].filter(
+                                        (val: string | null) => val
+                                    )[0];
+                                } catch {
+                                    votedFor = line[col];
+                                }
+
+                                if (votedFor)
+                                    names.push(
+                                        votedFor
+                                            .split(" ")
+                                            .map(
+                                                (w) =>
+                                                    w[0].toUpperCase() +
+                                                    w.slice(1)
+                                            )
+                                            .join(" ")
+                                    );
                             }
                         }
                         relevantVotes.push(names);
