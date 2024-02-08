@@ -2,11 +2,9 @@ import {
     Card,
     CardContent,
     CardDescription,
-    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-
 import {
     Select,
     SelectContent,
@@ -15,9 +13,8 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 
-import { Button } from "@/components/ui/button";
-
 interface IProps {
+    filename: string;
     positions: string[];
     setSelectedPosition: (p: string) => void;
     setWinner: (w: string | null) => void;
@@ -29,20 +26,21 @@ interface IProps {
 }
 
 const PositionSelector = ({
+    filename,
     positions,
     setSelectedPosition,
     setWinner,
     setVotingRounds,
 }: IProps) => {
     return (
-        <Card>
+        <Card className="md:w-1/2 w-full">
             <CardHeader>
                 <CardTitle>Step 2</CardTitle>
                 <CardDescription>
-                    Please select a position to analyze.
+                    Please select a position from {filename} to analyze.
                 </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-col items-center justify-center">
                 <Select
                     onValueChange={(p) => {
                         setSelectedPosition(p);
