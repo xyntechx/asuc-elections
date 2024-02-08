@@ -3,9 +3,10 @@
 import { useEffect, useState } from "react";
 import { parse } from "csv-parse";
 import { createClient } from "@/utils/supabase/client";
-import FileSelect from "./FileSelect";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import FileSelect from "./FileSelect";
+import PositionSelector from "./PositionSelector";
 
 export default function Analyze() {
     const supabase = createClient();
@@ -292,22 +293,14 @@ export default function Analyze() {
                 <FileSelect setSelectedFilename={setFilename} />
             </div>
             {positions.length > 0 && (
-                <>
-                    <p>Choose position to analyze</p>
-                    {positions.map((pos) => (
-                        <Button
-                            key={pos}
-                            onClick={() => {
-                                setSelectedPosition(pos);
-                                setWinner(null);
-                                setVotingRounds([]);
-                            }}
-                            className="w-[300px]"
-                        >
-                            {pos}
-                        </Button>
-                    ))}
-                </>
+                <PositionSelector
+                    {...{
+                        positions,
+                        setSelectedPosition,
+                        setWinner,
+                        setVotingRounds,
+                    }}
+                />
             )}
             {isLoading && <p>Loading...</p>}
             {winner && <p>Elected person: {winner}</p>}
