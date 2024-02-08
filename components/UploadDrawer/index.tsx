@@ -14,8 +14,10 @@ import UploadFile from "./UploadFile";
 const UploadDrawer = () => {
     return (
         <Drawer>
-            <DrawerTrigger className={buttonVariants({ variant: "outline" })}>
-                Upload Election Results
+            <DrawerTrigger
+                className={buttonVariants({ variant: "outline", width: 300 })}
+            >
+                Upload election results
             </DrawerTrigger>
             <DrawerContent>
                 <DrawerHeader>

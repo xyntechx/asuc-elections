@@ -3,11 +3,11 @@
 import { useEffect, useState } from "react";
 import { parse } from "csv-parse";
 import { createClient } from "@/utils/supabase/client";
-import FileSelect from "@/components/FileSelect";
+import FileSelect from "./FileSelect";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
-export default function ExecutiveRace() {
+export default function Analyze() {
     const supabase = createClient();
 
     const [filename, setFilename] = useState("");
@@ -287,7 +287,7 @@ export default function ExecutiveRace() {
     };
 
     return (
-        <main className="w-full min-h-screen flex flex-col items-center justify-start gap-y-2">
+        <section className="w-full h-fit flex flex-col items-center justify-start gap-y-2">
             <div className="w-full h-fit flex flex-row items-center justify-center gap-x-4">
                 <FileSelect setSelectedFilename={setFilename} />
             </div>
@@ -329,6 +329,6 @@ export default function ExecutiveRace() {
                     Resume Analysis
                 </Button>
             )}
-        </main>
+        </section>
     );
 }

@@ -14,7 +14,7 @@ interface IProps {
     setSelectedFilename: (newName: string) => void;
 }
 
-export default function Page({ setSelectedFilename }: IProps) {
+export default function FileSelect({ setSelectedFilename }: IProps) {
     const supabase = createClient();
     const [filelist, setFilelist] = useState<any[] | null>(null);
 
@@ -35,8 +35,8 @@ export default function Page({ setSelectedFilename }: IProps) {
 
     return (
         <Select onValueChange={(filename) => setSelectedFilename(filename)}>
-            <SelectTrigger className="w-[200px]">
-                <SelectValue placeholder="Select CSV File" />
+            <SelectTrigger className="w-[300px]">
+                <SelectValue placeholder="Select election to analyze" />
             </SelectTrigger>
             <SelectContent>
                 {filelist &&
