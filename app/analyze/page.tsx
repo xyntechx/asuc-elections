@@ -7,7 +7,7 @@ import FileSelect from "@/components/FileSelect";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 
-export default function Race() {
+export default function ExecutiveRace() {
     const supabase = createClient();
 
     const [filename, setFilename] = useState("");
@@ -53,7 +53,7 @@ export default function Race() {
     }, [filename]);
 
     useEffect(() => {
-        const parseCSV = async () => {
+        const getCSVColumns = async () => {
             parse(
                 Buffer.from(await fileblob!.arrayBuffer()),
                 {
@@ -71,7 +71,7 @@ export default function Race() {
             );
         };
 
-        if (fileblob) parseCSV();
+        if (fileblob) getCSVColumns();
     }, [fileblob]);
 
     useEffect(() => {
@@ -79,7 +79,10 @@ export default function Race() {
             const uniquePositions = new Set<string>();
 
             for (const col of csvColumns) {
+                // split by "-" that columns like "President - 1" and "President - 2" are regarded as the same position
                 const splitCol = col.split(" - ");
+
+                // All position columns have numerical indices at the right side of the split column head (e.g. "President - 1")
                 if (!Number.isNaN(Number(splitCol[1]))) {
                     uniquePositions.add(splitCol[0]);
                 }
@@ -100,7 +103,7 @@ export default function Race() {
                 {
                     delimiter: ",",
                     columns: csvColumns,
-                    group_columns_by_name: true, // due to multiple columns of the same name (e.g. President - 1)
+                    group_columns_by_name: true, // due to multiple columns of the same name
                     fromLine: 2, // exclude first line (headers)
                     cast: (columnValue, context) => {
                         if (
@@ -108,7 +111,7 @@ export default function Race() {
                                 selectedPosition &&
                             columnValue.length > 0
                         ) {
-                            return columnValue.split("|")[0].trim();
+                            return columnValue.split("|")[0].trim(); // only return the nominee's name (no extra descriptions)
                         }
 
                         return null;
@@ -129,9 +132,10 @@ export default function Race() {
                                 let votedFor: string;
                                 try {
                                     votedFor = line[col].filter(
-                                        (val: string | null) => val
+                                        (val: string | null) => val // return only the non-null values
                                     )[0];
                                 } catch {
+                                    // if line[col] is not an array, then just return line[col]
                                     votedFor = line[col];
                                 }
 
@@ -200,12 +204,12 @@ export default function Race() {
             setWinner(Object.keys(candidateToCount)[0]);
         }
 
-        const threshold = (totalVoteCount + 1) / 2;
+        const THRESHOLD = (totalVoteCount + 1) / 2;
 
         for (const candidate in candidateToCount) {
             const points = candidateToCount[candidate];
 
-            if (points >= threshold) {
+            if (points >= THRESHOLD) {
                 setWinner(candidate);
                 return;
             }
@@ -261,6 +265,7 @@ export default function Race() {
     ): string[] => {
         if (worstCandidates.length === newVotes.length) {
             if (index === votingRounds.length) {
+                // Choose a random candidate to eliminate
                 return [
                     worstCandidates[
                         Math.floor(Math.random() * worstCandidates.length)
