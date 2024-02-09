@@ -20,7 +20,8 @@ export default function Home() {
     const [positions, setPositions] = useState<string[]>([]);
 
     const [selectedPosition, setSelectedPosition] = useState<string>("");
-    const [votes, setVotes] = useState<string[][]>([]);
+    const [execVotes, setExecVotes] = useState<string[][]>([]);
+    const [senateVotes, setSenateVotes] = useState<string[][]>([]);
     const [votingRounds, setVotingRounds] = useState<
         {
             [key: string]: number;
@@ -49,7 +50,8 @@ export default function Home() {
         if (filename.length > 0) {
             // Reset states
             setSelectedPosition("");
-            setVotes([]);
+            setExecVotes([]);
+            setSenateVotes([]);
             setVotingRounds([]);
             setCandidateToCount({});
             setTotalVoteCount(0);
@@ -169,7 +171,9 @@ export default function Home() {
                         relevantVotes.push(names);
                     }
 
-                    setVotes(relevantVotes);
+                    if (selectedPosition === "Senate")
+                        setSenateVotes(relevantVotes);
+                    else setExecVotes(relevantVotes);
                 }
             );
 
@@ -180,11 +184,12 @@ export default function Home() {
     }, [selectedPosition, csvColumns, fileblob]);
 
     useEffect(() => {
-        if (votes.length > 0) {
-            if (selectedPosition === "Senate") handleSenateRace();
-            else handleExecutiveRace();
-        }
-    }, [votes]);
+        if (execVotes.length > 0) handleExecutiveRace();
+    }, [execVotes]);
+
+    useEffect(() => {
+        if (senateVotes.length > 0) handleSenateRace();
+    }, [senateVotes]);
 
     useEffect(() => {
         if (Object.keys(candidateToCount).length === 1) {
@@ -204,13 +209,41 @@ export default function Home() {
     }, [candidateToCount]);
 
     const handleSenateRace = () => {
-        console.log("senate race start");
+        const currCandidateToCount: { [key: string]: number } = {};
+
+        for (const vote of senateVotes) {
+            if (vote.length === 0) {
+                continue;
+            }
+
+            const candidate = vote[0];
+            if (!Object.keys(currCandidateToCount).includes(candidate)) {
+                currCandidateToCount[candidate] = 0;
+            }
+            currCandidateToCount[candidate]++;
+        }
+
+        const sortedCandidateToCount =
+            sortDescCandidateToCount(currCandidateToCount);
+
+        setCandidateToCount(sortedCandidateToCount);
+
+        if (votingRounds.length === 0) {
+            setTotalVoteCount(
+                Object.values(sortedCandidateToCount).reduce(
+                    (prev, n) => prev + n,
+                    0
+                )
+            );
+        }
+
+        setVotingRounds([...votingRounds, sortedCandidateToCount]);
     };
 
     const handleExecutiveRace = () => {
         const currCandidateToCount: { [key: string]: number } = {};
 
-        for (const vote of votes) {
+        for (const vote of execVotes) {
             if (vote.length === 0) {
                 continue;
             }
@@ -269,7 +302,7 @@ export default function Home() {
             (c) => candidateToCount[c] === leastPointCount
         );
 
-        const newVotes = [...votes];
+        const newVotes = [...execVotes];
 
         worstCandidates = checkForAllTie(worstCandidates, newVotes, 0);
 
@@ -282,7 +315,7 @@ export default function Home() {
             );
         }
 
-        setVotes(newVotes);
+        setExecVotes(newVotes);
     };
 
     const checkForAllTie = (
