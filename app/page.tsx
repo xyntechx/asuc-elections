@@ -181,35 +181,8 @@ export default function Home() {
 
     useEffect(() => {
         if (votes.length > 0) {
-            const currCandidateToCount: { [key: string]: number } = {};
-
-            for (const vote of votes) {
-                if (vote.length === 0) {
-                    continue;
-                }
-
-                const candidate = vote[0];
-                if (!Object.keys(currCandidateToCount).includes(candidate)) {
-                    currCandidateToCount[candidate] = 0;
-                }
-                currCandidateToCount[candidate]++;
-            }
-
-            const sortedCandidateToCount =
-                sortDescCandidateToCount(currCandidateToCount);
-
-            setCandidateToCount(sortedCandidateToCount);
-
-            if (votingRounds.length === 0) {
-                setTotalVoteCount(
-                    Object.values(sortedCandidateToCount).reduce(
-                        (prev, n) => prev + n,
-                        0
-                    )
-                );
-            }
-
-            setVotingRounds([...votingRounds, sortedCandidateToCount]);
+            if (selectedPosition === "Senate") handleSenateRace();
+            else handleExecutiveRace();
         }
     }, [votes]);
 
@@ -229,6 +202,42 @@ export default function Home() {
             }
         }
     }, [candidateToCount]);
+
+    const handleSenateRace = () => {
+        console.log("senate race start");
+    };
+
+    const handleExecutiveRace = () => {
+        const currCandidateToCount: { [key: string]: number } = {};
+
+        for (const vote of votes) {
+            if (vote.length === 0) {
+                continue;
+            }
+
+            const candidate = vote[0];
+            if (!Object.keys(currCandidateToCount).includes(candidate)) {
+                currCandidateToCount[candidate] = 0;
+            }
+            currCandidateToCount[candidate]++;
+        }
+
+        const sortedCandidateToCount =
+            sortDescCandidateToCount(currCandidateToCount);
+
+        setCandidateToCount(sortedCandidateToCount);
+
+        if (votingRounds.length === 0) {
+            setTotalVoteCount(
+                Object.values(sortedCandidateToCount).reduce(
+                    (prev, n) => prev + n,
+                    0
+                )
+            );
+        }
+
+        setVotingRounds([...votingRounds, sortedCandidateToCount]);
+    };
 
     const sortDescCandidateToCount = (obj: { [key: string]: number }) => {
         let candidateCountArr: any = [];
@@ -250,7 +259,11 @@ export default function Home() {
         return result;
     };
 
-    const resumeAnalysis = () => {
+    const resumeSenateAnalysis = () => {
+        console.log("Resume senate analysis");
+    };
+
+    const resumeExecutiveAnalysis = () => {
         const leastPointCount = Math.min(...Object.values(candidateToCount));
         let worstCandidates = Object.keys(candidateToCount).filter(
             (c) => candidateToCount[c] === leastPointCount
@@ -355,7 +368,11 @@ export default function Home() {
                     )}
                     {votingRounds.length > 0 && !winner && (
                         <Button
-                            onClick={() => resumeAnalysis()}
+                            onClick={() =>
+                                selectedPosition === "Senate"
+                                    ? resumeSenateAnalysis()
+                                    : resumeExecutiveAnalysis()
+                            }
                             className="w-full"
                         >
                             Resume Analysis
