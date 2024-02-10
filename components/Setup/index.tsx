@@ -13,9 +13,11 @@ import UploadDrawer from "./UploadDrawer";
 import FileSelector from "./FileSelector";
 
 interface IProps {
-    setSelectedFilename: (newName: string) => void;
+    setFilename: (f: string) => void;
     setSelectedPosition: (p: string) => void;
     setWinner: (w: string | null) => void;
+    setSenateWinners: (w: string[]) => void;
+    setCandidateToCount: (obj: { [key: string]: number }) => void;
     setVotingRounds: (
         round: {
             [key: string]: number;
@@ -24,9 +26,11 @@ interface IProps {
 }
 
 export default function Setup({
-    setSelectedFilename,
+    setFilename,
     setSelectedPosition,
     setWinner,
+    setSenateWinners,
+    setCandidateToCount,
     setVotingRounds,
 }: IProps) {
     const supabase = createClient();
@@ -62,9 +66,11 @@ export default function Setup({
                 <FileSelector
                     {...{
                         filelist,
-                        setSelectedFilename,
+                        setFilename,
                         setSelectedPosition,
                         setWinner,
+                        setSenateWinners,
+                        setCandidateToCount,
                         setVotingRounds,
                     }}
                 />

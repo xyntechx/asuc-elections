@@ -8,7 +8,7 @@ import {
 
 interface IProps {
     filelist: any[] | null;
-    setSelectedFilename: (newName: string) => void;
+    setFilename: (newName: string) => void;
     setSelectedPosition: (p: string) => void;
     setWinner: (w: string | null) => void;
     setVotingRounds: (
@@ -16,22 +16,28 @@ interface IProps {
             [key: string]: number;
         }[]
     ) => void;
+    setSenateWinners: (w: string[]) => void;
+    setCandidateToCount: (obj: { [key: string]: number }) => void;
 }
 
 const FileSelector = ({
     filelist,
-    setSelectedFilename,
+    setFilename,
     setSelectedPosition,
     setWinner,
     setVotingRounds,
+    setSenateWinners,
+    setCandidateToCount,
 }: IProps) => {
     return (
         <Select
             onValueChange={(filename) => {
-                setSelectedFilename(filename);
+                setFilename(filename);
                 setSelectedPosition("");
                 setWinner(null);
                 setVotingRounds([]);
+                setSenateWinners([]);
+                setCandidateToCount({});
             }}
         >
             <SelectTrigger className="w-[300px]">

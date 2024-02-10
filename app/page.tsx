@@ -11,6 +11,11 @@ import { RocketIcon } from "@radix-ui/react-icons";
 import Setup from "@/components/Setup";
 import PositionSelector from "@/components/PositionSelector";
 
+interface ISenateVote {
+    candidate: string;
+    value: number | null;
+}
+
 export default function Home() {
     const supabase = createClient();
 
@@ -20,7 +25,8 @@ export default function Home() {
     const [positions, setPositions] = useState<string[]>([]);
 
     const [selectedPosition, setSelectedPosition] = useState<string>("");
-    const [votes, setVotes] = useState<string[][]>([]);
+    const [execVotes, setExecVotes] = useState<string[][]>([]);
+    const [senateVotes, setSenateVotes] = useState<ISenateVote[][]>([]);
     const [votingRounds, setVotingRounds] = useState<
         {
             [key: string]: number;
@@ -30,7 +36,11 @@ export default function Home() {
         [key: string]: number;
     }>({});
     const [totalVoteCount, setTotalVoteCount] = useState(0);
+    const [currQuota, setCurrQuota] = useState(0);
     const [winner, setWinner] = useState<string | null>(null);
+    const [senateWinners, setSenateWinners] = useState<string[]>([]);
+    const [newSenateWinners, setNewSenateWinners] = useState<string[]>([]);
+    const [unfilledSenateSeatCount, setUnfilledSenateSeatCount] = useState(20);
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -49,11 +59,16 @@ export default function Home() {
         if (filename.length > 0) {
             // Reset states
             setSelectedPosition("");
-            setVotes([]);
+            setExecVotes([]);
+            setSenateVotes([]);
             setVotingRounds([]);
             setCandidateToCount({});
             setTotalVoteCount(0);
+            setCurrQuota(0);
             setWinner(null);
+            setSenateWinners([]);
+            setNewSenateWinners([]);
+            setUnfilledSenateSeatCount(20);
 
             downloadCSV();
         }
@@ -169,7 +184,28 @@ export default function Home() {
                         relevantVotes.push(names);
                     }
 
-                    setVotes(relevantVotes);
+                    if (selectedPosition === "Senate") {
+                        const allVotes: ISenateVote[][] = [];
+
+                        for (const vote of relevantVotes) {
+                            const indivVote: ISenateVote[] = [];
+
+                            for (let i = 0; i < vote.length; i++) {
+                                const candidate = vote[i];
+
+                                indivVote.push({
+                                    candidate,
+                                    value: i === 0 ? 1 : null, // vote value of 1 to first choice, temporarily null for the rest
+                                });
+                            }
+
+                            allVotes.push(indivVote);
+                        }
+
+                        setSenateVotes(allVotes);
+                    } else {
+                        setExecVotes(relevantVotes);
+                    }
                 }
             );
 
@@ -180,55 +216,135 @@ export default function Home() {
     }, [selectedPosition, csvColumns, fileblob]);
 
     useEffect(() => {
-        if (votes.length > 0) {
-            const currCandidateToCount: { [key: string]: number } = {};
-
-            for (const vote of votes) {
-                if (vote.length === 0) {
-                    continue;
-                }
-
-                const candidate = vote[0];
-                if (!Object.keys(currCandidateToCount).includes(candidate)) {
-                    currCandidateToCount[candidate] = 0;
-                }
-                currCandidateToCount[candidate]++;
-            }
-
-            const sortedCandidateToCount =
-                sortDescCandidateToCount(currCandidateToCount);
-
-            setCandidateToCount(sortedCandidateToCount);
-
-            if (votingRounds.length === 0) {
-                setTotalVoteCount(
-                    Object.values(sortedCandidateToCount).reduce(
-                        (prev, n) => prev + n,
-                        0
-                    )
-                );
-            }
-
-            setVotingRounds([...votingRounds, sortedCandidateToCount]);
-        }
-    }, [votes]);
+        if (execVotes.length > 0) handleExecutiveRace();
+    }, [execVotes]);
 
     useEffect(() => {
-        if (Object.keys(candidateToCount).length === 1) {
-            setWinner(Object.keys(candidateToCount)[0]);
-        }
+        if (senateVotes.length > 0) handleSenateRace();
+    }, [senateVotes]);
 
-        const THRESHOLD = (totalVoteCount + 1) / 2;
+    useEffect(() => {
+        if (Object.keys(candidateToCount).length === 0) return;
 
-        for (const candidate in candidateToCount) {
-            const points = candidateToCount[candidate];
+        if (selectedPosition === "Senate") {
+            // For senate races
+            const newWinners = [];
 
-            if (points >= THRESHOLD) {
-                setWinner(candidate);
+            if (
+                Object.keys(candidateToCount).length <= unfilledSenateSeatCount
+            ) {
+                setSenateWinners([
+                    ...senateWinners,
+                    ...Object.keys(candidateToCount),
+                ]);
+
+                setUnfilledSenateSeatCount(0);
+                setCandidateToCount({});
+
                 return;
             }
+
+            for (const candidate in candidateToCount) {
+                const points = candidateToCount[candidate];
+
+                if (points >= currQuota) {
+                    newWinners.push(candidate);
+                }
+            }
+
+            setSenateWinners([...senateWinners, ...newWinners]);
+            setNewSenateWinners(newWinners);
+            setUnfilledSenateSeatCount(
+                unfilledSenateSeatCount - newWinners.length
+            );
+        } else {
+            // For executive races
+            if (Object.keys(candidateToCount).length === 1) {
+                setWinner(Object.keys(candidateToCount)[0]);
+            }
+
+            for (const candidate in candidateToCount) {
+                const points = candidateToCount[candidate];
+
+                if (points >= currQuota) {
+                    setWinner(candidate);
+                    return;
+                }
+            }
         }
-    }, [candidateToCount]);
+    }, [candidateToCount, selectedPosition]);
+
+    const handleSenateRace = () => {
+        const currCandidateToCount: { [key: string]: number } = {};
+
+        for (const vote of senateVotes) {
+            if (vote.length === 0) {
+                continue;
+            }
+
+            const currChoice = vote[0];
+            if (
+                !Object.keys(currCandidateToCount).includes(
+                    currChoice.candidate
+                )
+            ) {
+                currCandidateToCount[currChoice.candidate] = 0;
+            }
+            currCandidateToCount[currChoice.candidate] += currChoice.value
+                ? currChoice.value
+                : 0;
+        }
+
+        const sortedCandidateToCount =
+            sortDescCandidateToCount(currCandidateToCount);
+
+        setCandidateToCount(sortedCandidateToCount);
+
+        if (votingRounds.length === 0) {
+            const N = Object.values(sortedCandidateToCount).reduce(
+                (prev, n) => prev + n,
+                0
+            );
+
+            setTotalVoteCount(N);
+            setCurrQuota(Math.floor(1 + N / (unfilledSenateSeatCount + 1)));
+        }
+
+        setVotingRounds([...votingRounds, sortedCandidateToCount]);
+    };
+
+    const handleExecutiveRace = () => {
+        const currCandidateToCount: { [key: string]: number } = {};
+
+        for (const vote of execVotes) {
+            if (vote.length === 0) {
+                continue;
+            }
+
+            const candidate = vote[0];
+            if (!Object.keys(currCandidateToCount).includes(candidate)) {
+                currCandidateToCount[candidate] = 0;
+            }
+            currCandidateToCount[candidate]++;
+        }
+
+        const sortedCandidateToCount =
+            sortDescCandidateToCount(currCandidateToCount);
+
+        setCandidateToCount(sortedCandidateToCount);
+
+        if (votingRounds.length === 0) {
+            const N = Object.values(sortedCandidateToCount).reduce(
+                (prev, n) => prev + n,
+                0
+            );
+
+            setTotalVoteCount(N);
+            setCurrQuota((N + 1) / 2);
+        }
+
+        setVotingRounds([...votingRounds, sortedCandidateToCount]);
+    };
 
     const sortDescCandidateToCount = (obj: { [key: string]: number }) => {
         let candidateCountArr: any = [];
@@ -250,13 +366,75 @@ export default function Home() {
         return result;
     };
 
-    const resumeAnalysis = () => {
+    const resumeSenateAnalysis = () => {
+        if (newSenateWinners.length > 0) {
+            // Transfer excess candidate votes to other candidates
+            const newVotes = [...senateVotes];
+
+            for (let i = 0; i < newVotes.length; i++) {
+                if (newVotes[i].length === 0) {
+                    continue;
+                }
+
+                if (newSenateWinners.includes(newVotes[i][0].candidate)) {
+                    const V = newVotes[i][0].value ? newVotes[i][0].value! : 0;
+                    const C = candidateToCount[newVotes[i][0].candidate];
+                    const Q = currQuota;
+
+                    newVotes[i] = newVotes[i].slice(1);
+
+                    if (newVotes[i].length > 0)
+                        newVotes[i][0].value = (V * (C - Q)) / C;
+                }
+
+                newVotes[i] = newVotes[i].filter(
+                    (v) => !newSenateWinners.includes(v.candidate)
+                );
+            }
+
+            setSenateVotes(newVotes);
+        } else {
+            // Eliminate worst candidate IFF nobody was elected in this round
+            const leastPointCount = Math.min(
+                ...Object.values(candidateToCount)
+            );
+            let worstCandidates = Object.keys(candidateToCount).filter(
+                (c) => candidateToCount[c] === leastPointCount
+            );
+
+            const newVotes = [...senateVotes];
+
+            worstCandidates = checkForAllTie(worstCandidates, newVotes, 0);
+
+            for (let i = 0; i < newVotes.length; i++) {
+                if (newVotes[i].length === 0) {
+                    continue;
+                }
+
+                if (worstCandidates.includes(newVotes[i][0].candidate)) {
+                    const voteValue = newVotes[i][0].value;
+
+                    newVotes[i] = newVotes[i].slice(1);
+
+                    if (newVotes[i].length > 0)
+                        newVotes[i][0].value = voteValue;
+                }
+                newVotes[i] = newVotes[i].filter(
+                    (v) => !worstCandidates.includes(v.candidate)
+                );
+            }
+
+            setSenateVotes(newVotes);
+        }
+    };
+
+    const resumeExecutiveAnalysis = () => {
         const leastPointCount = Math.min(...Object.values(candidateToCount));
         let worstCandidates = Object.keys(candidateToCount).filter(
             (c) => candidateToCount[c] === leastPointCount
         );
 
-        const newVotes = [...votes];
+        const newVotes = [...execVotes];
 
         worstCandidates = checkForAllTie(worstCandidates, newVotes, 0);
 
@@ -269,12 +447,12 @@ export default function Home() {
             );
         }
 
-        setVotes(newVotes);
+        setExecVotes(newVotes);
     };
 
     const checkForAllTie = (
         worstCandidates: string[],
-        newVotes: string[][],
+        newVotes: string[][] | ISenateVote[][],
         index: number
     ): string[] => {
         if (worstCandidates.length === newVotes.length) {
@@ -304,10 +482,14 @@ export default function Home() {
         <main className="w-full min-h-screen flex flex-col items-center justify-start gap-y-2">
             <h1 className="text-lg font-bold">ASUC Elections Tabulator</h1>
             <Setup
-                setSelectedFilename={setFilename}
-                setSelectedPosition={setSelectedPosition}
-                setWinner={setWinner}
-                setVotingRounds={setVotingRounds}
+                {...{
+                    setFilename,
+                    setSelectedPosition,
+                    setWinner,
+                    setSenateWinners,
+                    setCandidateToCount,
+                    setVotingRounds,
+                }}
             />
             {positions.length > 0 && (
                 <PositionSelector
@@ -316,6 +498,8 @@ export default function Home() {
                         positions,
                         setSelectedPosition,
                         setWinner,
+                        setSenateWinners,
+                        setCandidateToCount,
                         setVotingRounds,
                     }}
                 />
@@ -323,46 +507,79 @@ export default function Home() {
 
             {isLoading && <p>Loading...</p>}
 
-            {Object.keys(candidateToCount).length > 0 && (
-                <div className="flex flex-col items-start justify-center md:w-1/2 w-full py-8 gap-y-4">
-                    <Badge variant="outline">
-                        {filename}: {selectedPosition}
-                    </Badge>
-                    {Object.keys(candidateToCount).map((candidate) => (
-                        <div key={candidate} className="w-full">
-                            <p>{candidate}</p>
-                            <Progress
-                                value={
-                                    (candidateToCount[candidate] /
-                                        totalVoteCount) *
-                                    100
-                                }
-                            />
+            <div className="flex flex-col items-start justify-center md:w-1/2 w-full py-8 gap-y-4">
+                {Object.keys(candidateToCount).length > 0 && (
+                    <>
+                        <Badge variant="outline">
+                            {filename}: {selectedPosition}
+                        </Badge>
+                        <p>Total number of votes: {totalVoteCount}</p>
+                        <p>Current quota to win: {currQuota}</p>
+                        {selectedPosition === "Senate" && (
                             <p>
-                                {candidateToCount[candidate]} out of{" "}
-                                {totalVoteCount}
+                                Number of seats left: {unfilledSenateSeatCount}
                             </p>
-                        </div>
-                    ))}
-                    {winner && (
-                        <Alert>
+                        )}
+                    </>
+                )}
+                {Object.keys(candidateToCount).map((candidate) => (
+                    <div key={candidate} className="w-full">
+                        <p>{candidate}</p>
+                        <Progress
+                            value={Math.min(
+                                (candidateToCount[candidate] / currQuota) * 100,
+                                100
+                            )}
+                        />
+                        <p>
+                            {candidateToCount[candidate]} out of {currQuota}
+                        </p>
+                    </div>
+                ))}
+                {winner && (
+                    <Alert>
+                        <RocketIcon className="h-4 w-4" />
+                        <AlertTitle>Race completed</AlertTitle>
+                        <AlertDescription>
+                            {winner} won the race for {selectedPosition}
+                        </AlertDescription>
+                    </Alert>
+                )}
+                {senateWinners.length > 0 &&
+                    senateWinners.map((winner) => (
+                        <Alert key={winner}>
                             <RocketIcon className="h-4 w-4" />
-                            <AlertTitle>Race completed</AlertTitle>
+                            <AlertTitle>
+                                Seat #{senateWinners.indexOf(winner) + 1} Filled
+                            </AlertTitle>
                             <AlertDescription>
-                                {winner} won the race for {selectedPosition}
+                                {winner} was elected as Senate
                             </AlertDescription>
                         </Alert>
-                    )}
-                    {votingRounds.length > 0 && !winner && (
+                    ))}
+
+                {selectedPosition !== "Senate" &&
+                    votingRounds.length > 0 &&
+                    !winner && (
                         <Button
-                            onClick={() => resumeAnalysis()}
+                            onClick={() => resumeExecutiveAnalysis()}
                             className="w-full"
                         >
                             Resume Analysis
                         </Button>
                     )}
-                </div>
-            )}
+
+                {selectedPosition === "Senate" &&
+                    votingRounds.length > 0 &&
+                    unfilledSenateSeatCount > 0 && (
+                        <Button
+                            onClick={() => resumeSenateAnalysis()}
+                            className="w-full"
+                        >
+                            Resume Analysis
+                        </Button>
+                    )}
+            </div>
         </main>
     );
 }
