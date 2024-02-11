@@ -235,7 +235,7 @@ const DashboardScreen = () => {
             ) {
                 setSenateWinners([
                     ...senateWinners,
-                    ...Object.keys(candidateToCount),
+                    ...Object.keys(sortDescCandidateToCount(candidateToCount)),
                 ]);
 
                 setUnfilledSenateSeatCount(0);
@@ -522,7 +522,10 @@ const DashboardScreen = () => {
                                         Total vote count: {totalVoteCount}
                                     </Badge>
                                     <Badge variant="outline">
-                                        Winning quota: {currQuota}
+                                        Winning quota:{" "}
+                                        {Math.round(
+                                            (currQuota + Number.EPSILON) * 100
+                                        ) / 100}
                                     </Badge>
                                     {selectedPosition === "Senate" && (
                                         <Badge variant="outline">
@@ -573,10 +576,19 @@ const DashboardScreen = () => {
                                             <div className="flex flex-row items-center justify-between w-full">
                                                 <p>{candidate}</p>
                                                 <p className="text-xs text-gray-500">
-                                                    {candidateToCount[
-                                                        candidate
-                                                    ].toFixed(2)}{" "}
-                                                    out of {currQuota}
+                                                    {Math.round(
+                                                        (candidateToCount[
+                                                            candidate
+                                                        ] +
+                                                            Number.EPSILON) *
+                                                            100
+                                                    ) / 100}{" "}
+                                                    out of{" "}
+                                                    {Math.round(
+                                                        (currQuota +
+                                                            Number.EPSILON) *
+                                                            100
+                                                    ) / 100}
                                                 </p>
                                             </div>
                                             <Progress
