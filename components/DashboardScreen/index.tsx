@@ -404,7 +404,7 @@ const DashboardScreen = () => {
 
             const newVotes = [...senateVotes];
 
-            worstCandidates = checkForAllTie(worstCandidates, newVotes, 0);
+            if (unfilledSenateSeatCount === 1) worstCandidates = checkForAllTie(worstCandidates, newVotes, 0);
 
             for (let i = 0; i < newVotes.length; i++) {
                 if (newVotes[i].length === 0) {
