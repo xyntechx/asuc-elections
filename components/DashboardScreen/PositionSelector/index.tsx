@@ -19,6 +19,8 @@ interface IProps {
     setSelectedPosition: (p: string) => void;
     setWinner: (w: string | null) => void;
     setSenateWinners: (w: string[]) => void;
+    setNewSenateWinners: (w: string[]) => void;
+    setUnfilledSenateSeatCount: (c: number) => void;
     setCandidateToCount: (obj: { [key: string]: number }) => void;
     setVotingRounds: (
         round: {
@@ -33,6 +35,8 @@ const PositionSelector = ({
     setSelectedPosition,
     setWinner,
     setSenateWinners,
+    setNewSenateWinners,
+    setUnfilledSenateSeatCount,
     setCandidateToCount,
     setVotingRounds,
 }: IProps) => {
@@ -50,6 +54,8 @@ const PositionSelector = ({
                         setSelectedPosition(p);
                         setWinner(null);
                         setSenateWinners([]);
+                        setNewSenateWinners([]);
+                        setUnfilledSenateSeatCount(20);
                         setCandidateToCount({});
                         setVotingRounds([]);
                     }}

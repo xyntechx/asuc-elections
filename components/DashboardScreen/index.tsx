@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { RocketIcon } from "@radix-ui/react-icons";
+import { RocketIcon, PlayIcon } from "@radix-ui/react-icons";
 import Setup from "@/components/DashboardScreen/Setup";
 import PositionSelector from "@/components/DashboardScreen/PositionSelector";
 
@@ -500,87 +500,140 @@ const DashboardScreen = () => {
                         setSelectedPosition,
                         setWinner,
                         setSenateWinners,
+                        setNewSenateWinners,
+                        setUnfilledSenateSeatCount,
                         setCandidateToCount,
                         setVotingRounds,
                     }}
                 />
             )}
 
-            {isLoading && <p>Loading...</p>}
+            {!isLoading ? (
+                <div className="flex flex-col items-start justify-center md:w-1/2 w-full py-8 gap-y-4">
+                    <div className="flex flex-row items-center justify-between gap-x-4 w-full min-h-9">
+                        {(Object.keys(candidateToCount).length > 0 ||
+                            totalVoteCount > 0) && (
+                            <>
+                                <div className="flex flex-row items-center justify-start gap-x-4 w-fit">
+                                    <Badge>
+                                        {selectedPosition} for {filename}
+                                    </Badge>
+                                    <Badge variant="outline">
+                                        Total vote count: {totalVoteCount}
+                                    </Badge>
+                                    <Badge variant="outline">
+                                        Winning quota: {currQuota}
+                                    </Badge>
+                                    {selectedPosition === "Senate" && (
+                                        <Badge variant="outline">
+                                            Seats to fill:{" "}
+                                            {unfilledSenateSeatCount}
+                                        </Badge>
+                                    )}
+                                </div>
 
-            <div className="flex flex-col items-start justify-center md:w-1/2 w-full py-8 gap-y-4">
-                {Object.keys(candidateToCount).length > 0 && (
-                    <>
-                        <Badge variant="outline">
-                            {filename}: {selectedPosition}
-                        </Badge>
-                        <p>Total number of votes: {totalVoteCount}</p>
-                        <p>Current quota to win: {currQuota}</p>
-                        {selectedPosition === "Senate" && (
-                            <p>
-                                Number of seats left: {unfilledSenateSeatCount}
-                            </p>
+                                {selectedPosition !== "Senate" &&
+                                    votingRounds.length > 0 &&
+                                    !winner && (
+                                        <Button
+                                            onClick={() =>
+                                                resumeExecutiveAnalysis()
+                                            }
+                                            className="bg-blue-600 hover:bg-blue-600/90 flex flex-row items-center justify-center gap-x-2"
+                                        >
+                                            <PlayIcon /> Resume
+                                        </Button>
+                                    )}
+
+                                {selectedPosition === "Senate" &&
+                                    votingRounds.length > 0 &&
+                                    unfilledSenateSeatCount > 0 && (
+                                        <Button
+                                            onClick={() =>
+                                                resumeSenateAnalysis()
+                                            }
+                                            className="bg-blue-600 hover:bg-blue-600/90 flex flex-row items-center justify-center gap-x-2"
+                                        >
+                                            <PlayIcon /> Resume
+                                        </Button>
+                                    )}
+                            </>
                         )}
-                    </>
-                )}
-                {Object.keys(candidateToCount).map((candidate) => (
-                    <div key={candidate} className="w-full">
-                        <p>{candidate}</p>
-                        <Progress
-                            value={Math.min(
-                                (candidateToCount[candidate] / currQuota) * 100,
-                                100
-                            )}
-                        />
-                        <p>
-                            {candidateToCount[candidate]} out of {currQuota}
-                        </p>
                     </div>
-                ))}
-                {winner && (
-                    <Alert>
-                        <RocketIcon className="h-4 w-4" />
-                        <AlertTitle>Race completed</AlertTitle>
-                        <AlertDescription>
-                            {winner} won the race for {selectedPosition}
-                        </AlertDescription>
-                    </Alert>
-                )}
-                {senateWinners.length > 0 &&
-                    senateWinners.map((winner) => (
-                        <Alert key={winner}>
-                            <RocketIcon className="h-4 w-4" />
-                            <AlertTitle>
-                                Seat #{senateWinners.indexOf(winner) + 1} Filled
-                            </AlertTitle>
-                            <AlertDescription>
-                                {winner} was elected as Senate
-                            </AlertDescription>
-                        </Alert>
-                    ))}
 
-                {selectedPosition !== "Senate" &&
-                    votingRounds.length > 0 &&
-                    !winner && (
-                        <Button
-                            onClick={() => resumeExecutiveAnalysis()}
-                            className="w-full"
-                        >
-                            Resume Analysis
-                        </Button>
-                    )}
+                    <div className="flex flex-row items-start justify-center gap-x-10 w-full">
+                        <div className="flex flex-col items-center justify-center gap-y-4 w-full">
+                            {Object.keys(candidateToCount).length > 0 ? (
+                                Object.keys(candidateToCount).map(
+                                    (candidate) => (
+                                        <div
+                                            key={candidate}
+                                            className="w-full flex flex-col items-center justify-center gap-y-1"
+                                        >
+                                            <div className="flex flex-row items-center justify-between w-full">
+                                                <p>{candidate}</p>
+                                                <p className="text-xs text-gray-500">
+                                                    {candidateToCount[
+                                                        candidate
+                                                    ].toFixed(2)}{" "}
+                                                    out of {currQuota}
+                                                </p>
+                                            </div>
+                                            <Progress
+                                                value={Math.min(
+                                                    (candidateToCount[
+                                                        candidate
+                                                    ] /
+                                                        currQuota) *
+                                                        100,
+                                                    100
+                                                )}
+                                            />
+                                        </div>
+                                    )
+                                )
+                            ) : (
+                                <>
+                                    {totalVoteCount > 0 && (
+                                        <p className="w-full text-left text-gray-500">
+                                            No candidates left to be analyzed
+                                        </p>
+                                    )}
+                                </>
+                            )}
+                        </div>
 
-                {selectedPosition === "Senate" &&
-                    votingRounds.length > 0 &&
-                    unfilledSenateSeatCount > 0 && (
-                        <Button
-                            onClick={() => resumeSenateAnalysis()}
-                            className="w-full"
-                        >
-                            Resume Analysis
-                        </Button>
-                    )}
-            </div>
+                        <div className="flex flex-col items-center justify-center gap-y-2 w-full">
+                            {winner && (
+                                <Alert>
+                                    <RocketIcon className="h-4 w-4" />
+                                    <AlertTitle>Race completed</AlertTitle>
+                                    <AlertDescription>
+                                        {winner} was elected as{" "}
+                                        {selectedPosition}
+                                    </AlertDescription>
+                                </Alert>
+                            )}
+                            {senateWinners.length > 0 &&
+                                senateWinners.map((winner) => (
+                                    <Alert key={winner}>
+                                        <RocketIcon className="h-4 w-4" />
+                                        <AlertTitle>
+                                            Seat #
+                                            {senateWinners.indexOf(winner) + 1}{" "}
+                                            Filled
+                                        </AlertTitle>
+                                        <AlertDescription>
+                                            {winner} was elected as Senator
+                                        </AlertDescription>
+                                    </Alert>
+                                ))}
+                        </div>
+                    </div>
+                </div>
+            ) : (
+                <p className="py-8">Loading...</p>
+            )}
         </>
     );
 };
