@@ -2,8 +2,8 @@
 
 import { createClient } from "@/utils/supabase/client";
 import { useState } from "react";
-import { Input } from "../../ui/input";
-import { Button } from "../../ui/button";
+import { Input } from "../../../ui/input";
+import { Button } from "../../../ui/button";
 
 export default function UploadFile() {
     const supabase = createClient();

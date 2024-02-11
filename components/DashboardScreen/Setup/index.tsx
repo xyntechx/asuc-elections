@@ -60,9 +60,9 @@ export default function Setup({
                     election to analyze.
                 </CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center gap-y-1">
+            <CardContent className="flex md:flex-row flex-col items-center justify-center md:gap-x-4 gap-y-2">
                 <UploadDrawer />
-                <p>OR</p>
+                <b>OR</b>
                 <FileSelector
                     {...{
                         filelist,
