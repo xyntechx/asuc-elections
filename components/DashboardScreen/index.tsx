@@ -8,8 +8,8 @@ import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { RocketIcon } from "@radix-ui/react-icons";
-import Setup from "@/components/Setup";
-import PositionSelector from "@/components/PositionSelector";
+import Setup from "@/components/DashboardScreen/Setup";
+import PositionSelector from "@/components/DashboardScreen/PositionSelector";
 
 interface ISenateVote {
     candidate: string;
@@ -404,7 +404,8 @@ const DashboardScreen = () => {
 
             const newVotes = [...senateVotes];
 
-            if (unfilledSenateSeatCount === 1) worstCandidates = checkForAllTie(worstCandidates, newVotes, 0);
+            if (unfilledSenateSeatCount === 1)
+                worstCandidates = checkForAllTie(worstCandidates, newVotes, 0);
 
             for (let i = 0; i < newVotes.length; i++) {
                 if (newVotes[i].length === 0) {
