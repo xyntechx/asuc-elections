@@ -3,13 +3,12 @@
 import { useEffect, useState } from "react";
 import { parse } from "csv-parse";
 import { createClient } from "@/utils/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { RocketIcon, PlayIcon } from "@radix-ui/react-icons";
 import Setup from "@/components/DashboardScreen/Setup";
 import PositionSelector from "@/components/DashboardScreen/PositionSelector";
+import Controls from "./Controls";
+import CandidateProgress from "./CandidateProgress";
+import ExecWinAlert from "./WinAlerts/ExecWinAlert";
+import SenateWinAlert from "./WinAlerts/SenateWinAlert";
 
 interface ISenateVote {
     candidate: string;
@@ -510,57 +509,22 @@ const DashboardScreen = () => {
 
             {!isLoading ? (
                 <div className="flex flex-col items-start justify-center md:w-1/2 w-full py-8 gap-y-4">
-                    <div className="flex flex-row items-center justify-between gap-x-4 w-full min-h-9">
+                    <div className="flex md:flex-row flex-col items-center justify-between md:gap-x-4 gap-y-4 w-full min-h-9">
                         {(Object.keys(candidateToCount).length > 0 ||
                             totalVoteCount > 0) && (
-                            <>
-                                <div className="flex flex-row items-center justify-start gap-x-4 w-fit">
-                                    <Badge>
-                                        {selectedPosition} for {filename}
-                                    </Badge>
-                                    <Badge variant="outline">
-                                        Total vote count: {totalVoteCount}
-                                    </Badge>
-                                    <Badge variant="outline">
-                                        Winning quota:{" "}
-                                        {Math.round(
-                                            (currQuota + Number.EPSILON) * 100
-                                        ) / 100}
-                                    </Badge>
-                                    {selectedPosition === "Senate" && (
-                                        <Badge variant="outline">
-                                            Seats to fill:{" "}
-                                            {unfilledSenateSeatCount}
-                                        </Badge>
-                                    )}
-                                </div>
-
-                                {selectedPosition !== "Senate" &&
-                                    votingRounds.length > 0 &&
-                                    !winner && (
-                                        <Button
-                                            onClick={() =>
-                                                resumeExecutiveAnalysis()
-                                            }
-                                            className="bg-blue-600 hover:bg-blue-600/90 flex flex-row items-center justify-center gap-x-2"
-                                        >
-                                            <PlayIcon /> Resume
-                                        </Button>
-                                    )}
-
-                                {selectedPosition === "Senate" &&
-                                    votingRounds.length > 0 &&
-                                    unfilledSenateSeatCount > 0 && (
-                                        <Button
-                                            onClick={() =>
-                                                resumeSenateAnalysis()
-                                            }
-                                            className="bg-blue-600 hover:bg-blue-600/90 flex flex-row items-center justify-center gap-x-2"
-                                        >
-                                            <PlayIcon /> Resume
-                                        </Button>
-                                    )}
-                            </>
+                            <Controls
+                                {...{
+                                    filename,
+                                    selectedPosition,
+                                    totalVoteCount,
+                                    currQuota,
+                                    votingRounds,
+                                    winner,
+                                    unfilledSenateSeatCount,
+                                    resumeExecutiveAnalysis,
+                                    resumeSenateAnalysis,
+                                }}
+                            />
                         )}
                     </div>
 
@@ -569,39 +533,14 @@ const DashboardScreen = () => {
                             {Object.keys(candidateToCount).length > 0 ? (
                                 Object.keys(candidateToCount).map(
                                     (candidate) => (
-                                        <div
+                                        <CandidateProgress
                                             key={candidate}
-                                            className="w-full flex flex-col items-center justify-center gap-y-1"
-                                        >
-                                            <div className="flex flex-row items-center justify-between w-full">
-                                                <p>{candidate}</p>
-                                                <p className="text-xs text-gray-500">
-                                                    {Math.round(
-                                                        (candidateToCount[
-                                                            candidate
-                                                        ] +
-                                                            Number.EPSILON) *
-                                                            100
-                                                    ) / 100}{" "}
-                                                    out of{" "}
-                                                    {Math.round(
-                                                        (currQuota +
-                                                            Number.EPSILON) *
-                                                            100
-                                                    ) / 100}
-                                                </p>
-                                            </div>
-                                            <Progress
-                                                value={Math.min(
-                                                    (candidateToCount[
-                                                        candidate
-                                                    ] /
-                                                        currQuota) *
-                                                        100,
-                                                    100
-                                                )}
-                                            />
-                                        </div>
+                                            {...{
+                                                candidate,
+                                                candidateToCount,
+                                                currQuota,
+                                            }}
+                                        />
                                     )
                                 )
                             ) : (
@@ -617,28 +556,16 @@ const DashboardScreen = () => {
 
                         <div className="flex flex-col items-center justify-center gap-y-2 w-full">
                             {winner && (
-                                <Alert>
-                                    <RocketIcon className="h-4 w-4" />
-                                    <AlertTitle>Race completed</AlertTitle>
-                                    <AlertDescription>
-                                        {winner} was elected as{" "}
-                                        {selectedPosition}
-                                    </AlertDescription>
-                                </Alert>
+                                <ExecWinAlert
+                                    {...{ winner, selectedPosition }}
+                                />
                             )}
                             {senateWinners.length > 0 &&
                                 senateWinners.map((winner) => (
-                                    <Alert key={winner}>
-                                        <RocketIcon className="h-4 w-4" />
-                                        <AlertTitle>
-                                            Seat #
-                                            {senateWinners.indexOf(winner) + 1}{" "}
-                                            Filled
-                                        </AlertTitle>
-                                        <AlertDescription>
-                                            {winner} was elected as Senator
-                                        </AlertDescription>
-                                    </Alert>
+                                    <SenateWinAlert
+                                        key={winner}
+                                        {...{ winner, senateWinners }}
+                                    />
                                 ))}
                         </div>
                     </div>
