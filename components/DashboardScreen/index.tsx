@@ -480,7 +480,7 @@ const DashboardScreen = () => {
 
     return (
         <>
-            <h1 className="text-lg font-bold">ASUC Elections Tabulator</h1>
+            <h1 className="text-lg font-bold">ASUC Elections Dashboard</h1>
             <Setup
                 {...{
                     setFilename,

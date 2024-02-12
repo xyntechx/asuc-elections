@@ -8,8 +8,8 @@ const defaultUrl = process.env.VERCEL_URL
 
 export const metadata = {
     metadataBase: new URL(defaultUrl),
-    title: "ASUC Elections Tabulator",
-    description: "Calculate and visualize ASUC election results",
+    title: "ASUC Elections Dashboard",
+    description: "Analyze and visualize ASUC election outcomes",
     authors: { name: "Nyx Iskandar", url: "https://xyntechx.com" },
 };
 
