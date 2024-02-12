@@ -1,5 +1,5 @@
-# ASUC Tabulator
-Calculate and visualize ASUC election results
+# ASUC Elections Dashboard
+Analyze and visualize ASUC election outcomes
 
 ## 🚀 Commands
 Run locally
