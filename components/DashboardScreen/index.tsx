@@ -554,7 +554,7 @@ const DashboardScreen = () => {
                             )}
                         </div>
 
-                        <div className="flex flex-col items-center justify-center gap-y-2 w-full">
+                        <div className="flex flex-col-reverse items-center justify-center gap-y-2 w-full">
                             {winner && (
                                 <ExecWinAlert
                                     {...{ winner, selectedPosition }}
