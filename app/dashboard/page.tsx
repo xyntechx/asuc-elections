@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { parse } from "csv-parse";
 import { createClient } from "@/utils/supabase/client";
 import Setup from "@/app/dashboard/Setup";
 import PositionSelector from "@/app/dashboard/PositionSelector";
+import { Button } from "@/components/ui/button";
 import Controls from "./Controls";
 import CandidateProgress from "./CandidateProgress";
 import ExecWinAlert from "./WinAlerts/ExecWinAlert";
@@ -17,6 +19,9 @@ interface ISenateVote {
 
 const Dashboard = () => {
     const supabase = createClient();
+    const router = useRouter();
+
+    const [isAdmin, setIsAdmin] = useState(false);
 
     const [filename, setFilename] = useState("");
     const [fileblob, setFileblob] = useState<Blob | null>(null);
@@ -42,6 +47,19 @@ const Dashboard = () => {
     const [unfilledSenateSeatCount, setUnfilledSenateSeatCount] = useState(20);
 
     const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        const getUser = async () => {
+            const { data, error } = await supabase.auth.getUser();
+            if (error || !data?.user) {
+                setIsAdmin(false);
+            } else {
+                setIsAdmin(true);
+            }
+        };
+
+        getUser();
+    }, []);
 
     useEffect(() => {
         const downloadCSV = async () => {
@@ -478,8 +496,26 @@ const Dashboard = () => {
         return worstCandidates;
     };
 
+    const handleLogout = async () => {
+        const { error } = await supabase.auth.signOut();
+        router.push("/");
+    };
+
     return (
-        <main className="w-full min-h-screen flex flex-col items-center justify-center gap-y-2 p-4">
+        <main className="w-full min-h-screen flex flex-col items-center justify-start gap-y-2 p-4">
+            {isAdmin ? (
+                <div className="md:w-1/2 w-full flex flex-row items-center justify-between">
+                    <h1 className="text-lg font-bold">Admin Dashboard</h1>
+                    <Button
+                        onClick={() => handleLogout()}
+                        variant="destructive"
+                    >
+                        Log Out
+                    </Button>
+                </div>
+            ) : (
+                <h1 className="text-lg font-bold">Elections Dashboard</h1>
+            )}
             <Setup
                 {...{
                     setFilename,
