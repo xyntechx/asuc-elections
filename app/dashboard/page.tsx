@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { parse } from "csv-parse";
 import { createClient } from "@/utils/supabase/client";
-import Setup from "@/components/DashboardScreen/Setup";
-import PositionSelector from "@/components/DashboardScreen/PositionSelector";
+import Setup from "@/app/dashboard/Setup";
+import PositionSelector from "@/app/dashboard/PositionSelector";
 import Controls from "./Controls";
 import CandidateProgress from "./CandidateProgress";
 import ExecWinAlert from "./WinAlerts/ExecWinAlert";
@@ -15,7 +15,7 @@ interface ISenateVote {
     value: number | null;
 }
 
-const DashboardScreen = () => {
+const Dashboard = () => {
     const supabase = createClient();
 
     const [filename, setFilename] = useState("");
@@ -479,8 +479,7 @@ const DashboardScreen = () => {
     };
 
     return (
-        <>
-            <h1 className="text-lg font-bold">ASUC Elections Dashboard</h1>
+        <main className="w-full min-h-screen flex flex-col items-center justify-center gap-y-2 p-4">
             <Setup
                 {...{
                     setFilename,
@@ -573,8 +572,8 @@ const DashboardScreen = () => {
             ) : (
                 <p className="py-8">Loading...</p>
             )}
-        </>
+        </main>
     );
 };
 
-export default DashboardScreen;
+export default Dashboard;
