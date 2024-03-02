@@ -87,7 +87,6 @@ const Controls = ({
             </div>
 
             {selectedPosition !== "Senate" &&
-                votingRounds.length > 0 &&
                 !winner && (
                     <Button
                         onClick={() => resumeExecutiveAnalysis()}
@@ -98,7 +97,6 @@ const Controls = ({
                 )}
 
             {selectedPosition === "Senate" &&
-                votingRounds.length > 0 &&
                 unfilledSenateSeatCount > 0 && (
                     <Button
                         onClick={() => resumeSenateAnalysis()}

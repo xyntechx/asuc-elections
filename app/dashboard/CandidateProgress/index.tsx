@@ -53,6 +53,11 @@ const CandidateProgress = ({
                             ) / 100
                         }
                         duration={5}
+                        decimals={2}
+                        suffix={` out of ${
+                            Math.round((currQuota + Number.EPSILON) * 100) / 100
+                        }`}
+                        className="text-xs text-gray-500"
                     />
                 )}
             </div>

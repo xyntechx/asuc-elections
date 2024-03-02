@@ -77,8 +77,8 @@ const config = {
                 sans: ["var(--font-sans)", ...fontFamily.sans],
             },
             transitionDuration: {
-                "5000": "5000ms"
-            }
+                "5000": "5000ms",
+            },
         },
     },
     plugins: [require("tailwindcss-animate")],

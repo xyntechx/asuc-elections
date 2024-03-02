@@ -39,6 +39,7 @@ const Dashboard = () => {
     const [candidateToCount, setCandidateToCount] = useState<{
         [key: string]: number;
     }>({});
+    const [isInit, setIsInit] = useState(true);
     const [totalVoteCount, setTotalVoteCount] = useState(0);
     const [currQuota, setCurrQuota] = useState(0);
     const [winner, setWinner] = useState<string | null>(null);
@@ -234,14 +235,18 @@ const Dashboard = () => {
 
     useEffect(() => {
         if (execVotes.length > 0) handleExecutiveRace();
-    }, [execVotes]);
+    }, [execVotes, isInit]);
 
     useEffect(() => {
         if (senateVotes.length > 0) handleSenateRace();
-    }, [senateVotes]);
+    }, [senateVotes, isInit]);
 
     useEffect(() => {
-        if (Object.keys(candidateToCount).length === 0) return;
+        if (
+            votingRounds.length === 0 ||
+            Object.keys(candidateToCount).length === 0
+        )
+            return;
 
         if (selectedPosition === "Senate") {
             // For senate races
@@ -289,7 +294,7 @@ const Dashboard = () => {
                 }
             }
         }
-    }, [candidateToCount, selectedPosition]);
+    }, [candidateToCount, selectedPosition, votingRounds]);
 
     const handleSenateRace = () => {
         const currCandidateToCount: { [key: string]: number } = {};
@@ -307,9 +312,12 @@ const Dashboard = () => {
             ) {
                 currCandidateToCount[currChoice.candidate] = 0;
             }
-            currCandidateToCount[currChoice.candidate] += currChoice.value
-                ? currChoice.value
-                : 0;
+
+            if (!isInit) {
+                currCandidateToCount[currChoice.candidate] += currChoice.value
+                    ? currChoice.value
+                    : 0;
+            }
         }
 
         const sortedCandidateToCount =
@@ -317,7 +325,7 @@ const Dashboard = () => {
 
         setCandidateToCount(sortedCandidateToCount);
 
-        if (votingRounds.length === 0) {
+        if (!isInit && votingRounds.length === 0) {
             const N = Object.values(sortedCandidateToCount).reduce(
                 (prev, n) => prev + n,
                 0
@@ -327,7 +335,7 @@ const Dashboard = () => {
             setCurrQuota(Math.floor(1 + N / (unfilledSenateSeatCount + 1)));
         }
 
-        setVotingRounds([...votingRounds, sortedCandidateToCount]);
+        if (!isInit) setVotingRounds([...votingRounds, sortedCandidateToCount]);
     };
 
     const handleExecutiveRace = () => {
@@ -342,7 +350,7 @@ const Dashboard = () => {
             if (!Object.keys(currCandidateToCount).includes(candidate)) {
                 currCandidateToCount[candidate] = 0;
             }
-            currCandidateToCount[candidate]++;
+            if (!isInit) currCandidateToCount[candidate]++;
         }
 
         const sortedCandidateToCount =
@@ -350,7 +358,7 @@ const Dashboard = () => {
 
         setCandidateToCount(sortedCandidateToCount);
 
-        if (votingRounds.length === 0) {
+        if (!isInit && votingRounds.length === 0) {
             const N = Object.values(sortedCandidateToCount).reduce(
                 (prev, n) => prev + n,
                 0
@@ -360,7 +368,7 @@ const Dashboard = () => {
             setCurrQuota((N + 1) / 2);
         }
 
-        setVotingRounds([...votingRounds, sortedCandidateToCount]);
+        if (!isInit) setVotingRounds([...votingRounds, sortedCandidateToCount]);
     };
 
     const sortDescCandidateToCount = (obj: { [key: string]: number }) => {
@@ -384,34 +392,79 @@ const Dashboard = () => {
     };
 
     const resumeSenateAnalysis = () => {
-        if (newSenateWinners.length > 0) {
-            // Transfer excess candidate votes to other candidates
-            const newVotes = [...senateVotes];
+        if (!isInit) {
+            if (newSenateWinners.length > 0) {
+                // Transfer excess candidate votes to other candidates
+                const newVotes = [...senateVotes];
 
-            for (let i = 0; i < newVotes.length; i++) {
-                if (newVotes[i].length === 0) {
-                    continue;
+                for (let i = 0; i < newVotes.length; i++) {
+                    if (newVotes[i].length === 0) {
+                        continue;
+                    }
+
+                    if (newSenateWinners.includes(newVotes[i][0].candidate)) {
+                        const V = newVotes[i][0].value
+                            ? newVotes[i][0].value!
+                            : 0;
+                        const C = candidateToCount[newVotes[i][0].candidate];
+                        const Q = currQuota;
+
+                        newVotes[i] = newVotes[i].slice(1);
+
+                        if (newVotes[i].length > 0)
+                            newVotes[i][0].value = (V * (C - Q)) / C;
+                    }
+
+                    newVotes[i] = newVotes[i].filter(
+                        (v) => !newSenateWinners.includes(v.candidate)
+                    );
                 }
 
-                if (newSenateWinners.includes(newVotes[i][0].candidate)) {
-                    const V = newVotes[i][0].value ? newVotes[i][0].value! : 0;
-                    const C = candidateToCount[newVotes[i][0].candidate];
-                    const Q = currQuota;
-
-                    newVotes[i] = newVotes[i].slice(1);
-
-                    if (newVotes[i].length > 0)
-                        newVotes[i][0].value = (V * (C - Q)) / C;
-                }
-
-                newVotes[i] = newVotes[i].filter(
-                    (v) => !newSenateWinners.includes(v.candidate)
+                setSenateVotes(newVotes);
+            } else {
+                // Eliminate worst candidate IFF nobody was elected in this round
+                const leastPointCount = Math.min(
+                    ...Object.values(candidateToCount)
                 );
-            }
+                let worstCandidates = Object.keys(candidateToCount).filter(
+                    (c) => candidateToCount[c] === leastPointCount
+                );
 
-            setSenateVotes(newVotes);
-        } else {
-            // Eliminate worst candidate IFF nobody was elected in this round
+                const newVotes = [...senateVotes];
+
+                if (unfilledSenateSeatCount === 1)
+                    worstCandidates = checkForAllTie(
+                        worstCandidates,
+                        newVotes,
+                        0
+                    );
+
+                for (let i = 0; i < newVotes.length; i++) {
+                    if (newVotes[i].length === 0) {
+                        continue;
+                    }
+
+                    if (worstCandidates.includes(newVotes[i][0].candidate)) {
+                        const voteValue = newVotes[i][0].value;
+
+                        newVotes[i] = newVotes[i].slice(1);
+
+                        if (newVotes[i].length > 0)
+                            newVotes[i][0].value = voteValue;
+                    }
+                    newVotes[i] = newVotes[i].filter(
+                        (v) => !worstCandidates.includes(v.candidate)
+                    );
+                }
+
+                setSenateVotes(newVotes);
+            }
+        }
+        setIsInit(false);
+    };
+
+    const resumeExecutiveAnalysis = () => {
+        if (!isInit) {
             const leastPointCount = Math.min(
                 ...Object.values(candidateToCount)
             );
@@ -419,53 +472,23 @@ const Dashboard = () => {
                 (c) => candidateToCount[c] === leastPointCount
             );
 
-            const newVotes = [...senateVotes];
+            const newVotes = [...execVotes];
 
-            if (unfilledSenateSeatCount === 1)
-                worstCandidates = checkForAllTie(worstCandidates, newVotes, 0);
+            worstCandidates = checkForAllTie(worstCandidates, newVotes, 0);
 
             for (let i = 0; i < newVotes.length; i++) {
-                if (newVotes[i].length === 0) {
-                    continue;
-                }
-
-                if (worstCandidates.includes(newVotes[i][0].candidate)) {
-                    const voteValue = newVotes[i][0].value;
-
+                if (worstCandidates.includes(newVotes[i][0])) {
                     newVotes[i] = newVotes[i].slice(1);
-
-                    if (newVotes[i].length > 0)
-                        newVotes[i][0].value = voteValue;
                 }
                 newVotes[i] = newVotes[i].filter(
-                    (v) => !worstCandidates.includes(v.candidate)
+                    (name) => !worstCandidates.includes(name)
                 );
             }
 
-            setSenateVotes(newVotes);
-        }
-    };
-
-    const resumeExecutiveAnalysis = () => {
-        const leastPointCount = Math.min(...Object.values(candidateToCount));
-        let worstCandidates = Object.keys(candidateToCount).filter(
-            (c) => candidateToCount[c] === leastPointCount
-        );
-
-        const newVotes = [...execVotes];
-
-        worstCandidates = checkForAllTie(worstCandidates, newVotes, 0);
-
-        for (let i = 0; i < newVotes.length; i++) {
-            if (worstCandidates.includes(newVotes[i][0])) {
-                newVotes[i] = newVotes[i].slice(1);
-            }
-            newVotes[i] = newVotes[i].filter(
-                (name) => !worstCandidates.includes(name)
-            );
+            setExecVotes(newVotes);
         }
 
-        setExecVotes(newVotes);
+        setIsInit(false);
     };
 
     const checkForAllTie = (
