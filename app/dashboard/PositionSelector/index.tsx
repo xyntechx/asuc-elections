@@ -41,7 +41,7 @@ const PositionSelector = ({
     setVotingRounds,
 }: IProps) => {
     return (
-        <Card className="md:w-1/2 w-full">
+        <Card className="md:w-4/5 w-full">
             <CardHeader>
                 <CardTitle>Step 2</CardTitle>
                 <CardDescription>

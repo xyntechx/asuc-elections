@@ -23,6 +23,7 @@ interface IProps {
             [key: string]: number;
         }[]
     ) => void;
+    isAdmin: boolean;
 }
 
 export default function Setup({
@@ -32,6 +33,7 @@ export default function Setup({
     setSenateWinners,
     setCandidateToCount,
     setVotingRounds,
+    isAdmin,
 }: IProps) {
     const supabase = createClient();
     const [filelist, setFilelist] = useState<any[] | null>(null);
@@ -52,28 +54,50 @@ export default function Setup({
     }, []);
 
     return (
-        <Card className="md:w-1/2 w-full">
+        <Card className="md:w-4/5 w-full">
             <CardHeader>
                 <CardTitle>Step 1</CardTitle>
-                <CardDescription>
-                    Please upload the results of an election or select an
-                    election to analyze.
-                </CardDescription>
+                {isAdmin ? (
+                    <CardDescription>
+                        Please upload the results of an election or select an
+                        election to analyze.
+                    </CardDescription>
+                ) : (
+                    <CardDescription>
+                        Please select an election to analyze.
+                    </CardDescription>
+                )}
             </CardHeader>
             <CardContent className="flex md:flex-row flex-col items-center justify-center md:gap-x-4 gap-y-2">
-                <UploadDrawer />
-                <b>OR</b>
-                <FileSelector
-                    {...{
-                        filelist,
-                        setFilename,
-                        setSelectedPosition,
-                        setWinner,
-                        setSenateWinners,
-                        setCandidateToCount,
-                        setVotingRounds,
-                    }}
-                />
+                {isAdmin ? (
+                    <>
+                        <UploadDrawer />
+                        <b>OR</b>
+                        <FileSelector
+                            {...{
+                                filelist,
+                                setFilename,
+                                setSelectedPosition,
+                                setWinner,
+                                setSenateWinners,
+                                setCandidateToCount,
+                                setVotingRounds,
+                            }}
+                        />
+                    </>
+                ) : (
+                    <FileSelector
+                        {...{
+                            filelist,
+                            setFilename,
+                            setSelectedPosition,
+                            setWinner,
+                            setSenateWinners,
+                            setCandidateToCount,
+                            setVotingRounds,
+                        }}
+                    />
+                )}
             </CardContent>
         </Card>
     );

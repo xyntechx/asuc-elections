@@ -504,7 +504,7 @@ const Dashboard = () => {
     return (
         <main className="w-full min-h-screen flex flex-col items-center justify-start gap-y-2 p-4">
             {isAdmin ? (
-                <div className="md:w-1/2 w-full flex flex-row items-center justify-between">
+                <div className="md:w-4/5 w-full flex flex-row items-center justify-between">
                     <h1 className="text-lg font-bold">Admin Dashboard</h1>
                     <Button
                         onClick={() => handleLogout()}
@@ -524,6 +524,7 @@ const Dashboard = () => {
                     setSenateWinners,
                     setCandidateToCount,
                     setVotingRounds,
+                    isAdmin,
                 }}
             />
             {positions.length > 0 && (
@@ -543,7 +544,7 @@ const Dashboard = () => {
             )}
 
             {!isLoading ? (
-                <div className="flex flex-col items-start justify-center md:w-1/2 w-full py-8 gap-y-4">
+                <div className="flex flex-col items-start justify-center md:w-4/5 w-full py-8 gap-y-4">
                     <div className="flex md:flex-row flex-col items-center justify-between md:gap-x-4 gap-y-4 w-full min-h-9">
                         {(Object.keys(candidateToCount).length > 0 ||
                             totalVoteCount > 0) && (
@@ -564,7 +565,7 @@ const Dashboard = () => {
                     </div>
 
                     <div className="flex flex-row items-start justify-center gap-x-10 w-full">
-                        <div className="flex flex-col items-center justify-center gap-y-4 w-full">
+                        <div className="flex flex-col items-center justify-center gap-y-4 w-2/3">
                             {Object.keys(candidateToCount).length > 0 ? (
                                 Object.keys(candidateToCount).map(
                                     (candidate) => (
@@ -574,6 +575,8 @@ const Dashboard = () => {
                                                 candidate,
                                                 candidateToCount,
                                                 currQuota,
+                                                votingRounds,
+                                                isAdmin,
                                             }}
                                         />
                                     )
@@ -589,7 +592,7 @@ const Dashboard = () => {
                             )}
                         </div>
 
-                        <div className="flex flex-col-reverse items-center justify-center gap-y-2 w-full">
+                        <div className="flex flex-col-reverse items-center justify-center gap-y-2 w-1/3">
                             {winner && (
                                 <ExecWinAlert
                                     {...{ winner, selectedPosition }}
