@@ -1,26 +1,22 @@
-"use client";
-
-import { useState } from "react";
-import DashboardScreen from "@/components/DashboardScreen";
-import LockScreen from "@/components/LockScreen";
+import { buttonVariants } from "@/components/ui/button";
+import Link from "next/link";
 
 const Home = () => {
-    const [password, setPassword] = useState("");
-    const [isCorrectPassword, setIsCorrectPassword] = useState(false);
-
-    const handlePasswordSubmit = () => {
-        if (password === process.env.NEXT_PUBLIC_PASSWORD)
-            setIsCorrectPassword(true);
-        else setIsCorrectPassword(false);
-    };
-
     return (
-        <main className="w-full min-h-screen flex flex-col items-center justify-start gap-y-2">
-            {isCorrectPassword ? (
-                <DashboardScreen />
-            ) : (
-                <LockScreen {...{ setPassword, handlePasswordSubmit }} />
-            )}
+        <main className="w-full min-h-screen flex flex-col items-center justify-center gap-y-2 p-4">
+            <h1 className="text-lg font-bold">ASUC Elections Dashboard</h1>
+            <Link
+                href="/login"
+                className={buttonVariants({ variant: "default", width: 200 })}
+            >
+                Log in as admin
+            </Link>
+            <Link
+                href="/dashboard"
+                className={buttonVariants({ variant: "outline", width: 200 })}
+            >
+                Continue as guest
+            </Link>
         </main>
     );
 };

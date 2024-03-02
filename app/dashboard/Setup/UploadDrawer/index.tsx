@@ -8,7 +8,7 @@ import {
     DrawerTitle,
     DrawerTrigger,
 } from "@/components/ui/drawer";
-import { Button, buttonVariants } from "../../../ui/button";
+import { Button, buttonVariants } from "../../../../components/ui/button";
 import UploadFile from "./UploadFile";
 
 const UploadDrawer = () => {

@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { parse } from "csv-parse";
 import { createClient } from "@/utils/supabase/client";
-import Setup from "@/components/DashboardScreen/Setup";
-import PositionSelector from "@/components/DashboardScreen/PositionSelector";
+import Setup from "@/app/dashboard/Setup";
+import PositionSelector from "@/app/dashboard/PositionSelector";
+import { Button } from "@/components/ui/button";
 import Controls from "./Controls";
 import CandidateProgress from "./CandidateProgress";
 import ExecWinAlert from "./WinAlerts/ExecWinAlert";
@@ -15,8 +17,11 @@ interface ISenateVote {
     value: number | null;
 }
 
-const DashboardScreen = () => {
+const Dashboard = () => {
     const supabase = createClient();
+    const router = useRouter();
+
+    const [isAdmin, setIsAdmin] = useState(false);
 
     const [filename, setFilename] = useState("");
     const [fileblob, setFileblob] = useState<Blob | null>(null);
@@ -34,6 +39,7 @@ const DashboardScreen = () => {
     const [candidateToCount, setCandidateToCount] = useState<{
         [key: string]: number;
     }>({});
+    const [isInit, setIsInit] = useState(true);
     const [totalVoteCount, setTotalVoteCount] = useState(0);
     const [currQuota, setCurrQuota] = useState(0);
     const [winner, setWinner] = useState<string | null>(null);
@@ -42,6 +48,19 @@ const DashboardScreen = () => {
     const [unfilledSenateSeatCount, setUnfilledSenateSeatCount] = useState(20);
 
     const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        const getUser = async () => {
+            const { data, error } = await supabase.auth.getUser();
+            if (error || !data?.user) {
+                setIsAdmin(false);
+            } else {
+                setIsAdmin(true);
+            }
+        };
+
+        getUser();
+    }, []);
 
     useEffect(() => {
         const downloadCSV = async () => {
@@ -216,14 +235,18 @@ const DashboardScreen = () => {
 
     useEffect(() => {
         if (execVotes.length > 0) handleExecutiveRace();
-    }, [execVotes]);
+    }, [execVotes, isInit]);
 
     useEffect(() => {
         if (senateVotes.length > 0) handleSenateRace();
-    }, [senateVotes]);
+    }, [senateVotes, isInit]);
 
     useEffect(() => {
-        if (Object.keys(candidateToCount).length === 0) return;
+        if (
+            votingRounds.length === 0 ||
+            Object.keys(candidateToCount).length === 0
+        )
+            return;
 
         if (selectedPosition === "Senate") {
             // For senate races
@@ -271,7 +294,7 @@ const DashboardScreen = () => {
                 }
             }
         }
-    }, [candidateToCount, selectedPosition]);
+    }, [candidateToCount, selectedPosition, votingRounds]);
 
     const handleSenateRace = () => {
         const currCandidateToCount: { [key: string]: number } = {};
@@ -289,9 +312,12 @@ const DashboardScreen = () => {
             ) {
                 currCandidateToCount[currChoice.candidate] = 0;
             }
-            currCandidateToCount[currChoice.candidate] += currChoice.value
-                ? currChoice.value
-                : 0;
+
+            if (!isInit) {
+                currCandidateToCount[currChoice.candidate] += currChoice.value
+                    ? currChoice.value
+                    : 0;
+            }
         }
 
         const sortedCandidateToCount =
@@ -299,7 +325,7 @@ const DashboardScreen = () => {
 
         setCandidateToCount(sortedCandidateToCount);
 
-        if (votingRounds.length === 0) {
+        if (!isInit && votingRounds.length === 0) {
             const N = Object.values(sortedCandidateToCount).reduce(
                 (prev, n) => prev + n,
                 0
@@ -309,7 +335,7 @@ const DashboardScreen = () => {
             setCurrQuota(Math.floor(1 + N / (unfilledSenateSeatCount + 1)));
         }
 
-        setVotingRounds([...votingRounds, sortedCandidateToCount]);
+        if (!isInit) setVotingRounds([...votingRounds, sortedCandidateToCount]);
     };
 
     const handleExecutiveRace = () => {
@@ -324,7 +350,7 @@ const DashboardScreen = () => {
             if (!Object.keys(currCandidateToCount).includes(candidate)) {
                 currCandidateToCount[candidate] = 0;
             }
-            currCandidateToCount[candidate]++;
+            if (!isInit) currCandidateToCount[candidate]++;
         }
 
         const sortedCandidateToCount =
@@ -332,7 +358,7 @@ const DashboardScreen = () => {
 
         setCandidateToCount(sortedCandidateToCount);
 
-        if (votingRounds.length === 0) {
+        if (!isInit && votingRounds.length === 0) {
             const N = Object.values(sortedCandidateToCount).reduce(
                 (prev, n) => prev + n,
                 0
@@ -342,7 +368,7 @@ const DashboardScreen = () => {
             setCurrQuota((N + 1) / 2);
         }
 
-        setVotingRounds([...votingRounds, sortedCandidateToCount]);
+        if (!isInit) setVotingRounds([...votingRounds, sortedCandidateToCount]);
     };
 
     const sortDescCandidateToCount = (obj: { [key: string]: number }) => {
@@ -366,34 +392,79 @@ const DashboardScreen = () => {
     };
 
     const resumeSenateAnalysis = () => {
-        if (newSenateWinners.length > 0) {
-            // Transfer excess candidate votes to other candidates
-            const newVotes = [...senateVotes];
+        if (!isInit) {
+            if (newSenateWinners.length > 0) {
+                // Transfer excess candidate votes to other candidates
+                const newVotes = [...senateVotes];
 
-            for (let i = 0; i < newVotes.length; i++) {
-                if (newVotes[i].length === 0) {
-                    continue;
+                for (let i = 0; i < newVotes.length; i++) {
+                    if (newVotes[i].length === 0) {
+                        continue;
+                    }
+
+                    if (newSenateWinners.includes(newVotes[i][0].candidate)) {
+                        const V = newVotes[i][0].value
+                            ? newVotes[i][0].value!
+                            : 0;
+                        const C = candidateToCount[newVotes[i][0].candidate];
+                        const Q = currQuota;
+
+                        newVotes[i] = newVotes[i].slice(1);
+
+                        if (newVotes[i].length > 0)
+                            newVotes[i][0].value = (V * (C - Q)) / C;
+                    }
+
+                    newVotes[i] = newVotes[i].filter(
+                        (v) => !newSenateWinners.includes(v.candidate)
+                    );
                 }
 
-                if (newSenateWinners.includes(newVotes[i][0].candidate)) {
-                    const V = newVotes[i][0].value ? newVotes[i][0].value! : 0;
-                    const C = candidateToCount[newVotes[i][0].candidate];
-                    const Q = currQuota;
-
-                    newVotes[i] = newVotes[i].slice(1);
-
-                    if (newVotes[i].length > 0)
-                        newVotes[i][0].value = (V * (C - Q)) / C;
-                }
-
-                newVotes[i] = newVotes[i].filter(
-                    (v) => !newSenateWinners.includes(v.candidate)
+                setSenateVotes(newVotes);
+            } else {
+                // Eliminate worst candidate IFF nobody was elected in this round
+                const leastPointCount = Math.min(
+                    ...Object.values(candidateToCount)
                 );
-            }
+                let worstCandidates = Object.keys(candidateToCount).filter(
+                    (c) => candidateToCount[c] === leastPointCount
+                );
 
-            setSenateVotes(newVotes);
-        } else {
-            // Eliminate worst candidate IFF nobody was elected in this round
+                const newVotes = [...senateVotes];
+
+                if (unfilledSenateSeatCount === 1)
+                    worstCandidates = checkForAllTie(
+                        worstCandidates,
+                        newVotes,
+                        0
+                    );
+
+                for (let i = 0; i < newVotes.length; i++) {
+                    if (newVotes[i].length === 0) {
+                        continue;
+                    }
+
+                    if (worstCandidates.includes(newVotes[i][0].candidate)) {
+                        const voteValue = newVotes[i][0].value;
+
+                        newVotes[i] = newVotes[i].slice(1);
+
+                        if (newVotes[i].length > 0)
+                            newVotes[i][0].value = voteValue;
+                    }
+                    newVotes[i] = newVotes[i].filter(
+                        (v) => !worstCandidates.includes(v.candidate)
+                    );
+                }
+
+                setSenateVotes(newVotes);
+            }
+        }
+        setIsInit(false);
+    };
+
+    const resumeExecutiveAnalysis = () => {
+        if (!isInit) {
             const leastPointCount = Math.min(
                 ...Object.values(candidateToCount)
             );
@@ -401,53 +472,23 @@ const DashboardScreen = () => {
                 (c) => candidateToCount[c] === leastPointCount
             );
 
-            const newVotes = [...senateVotes];
+            const newVotes = [...execVotes];
 
-            if (unfilledSenateSeatCount === 1)
-                worstCandidates = checkForAllTie(worstCandidates, newVotes, 0);
+            worstCandidates = checkForAllTie(worstCandidates, newVotes, 0);
 
             for (let i = 0; i < newVotes.length; i++) {
-                if (newVotes[i].length === 0) {
-                    continue;
-                }
-
-                if (worstCandidates.includes(newVotes[i][0].candidate)) {
-                    const voteValue = newVotes[i][0].value;
-
+                if (worstCandidates.includes(newVotes[i][0])) {
                     newVotes[i] = newVotes[i].slice(1);
-
-                    if (newVotes[i].length > 0)
-                        newVotes[i][0].value = voteValue;
                 }
                 newVotes[i] = newVotes[i].filter(
-                    (v) => !worstCandidates.includes(v.candidate)
+                    (name) => !worstCandidates.includes(name)
                 );
             }
 
-            setSenateVotes(newVotes);
-        }
-    };
-
-    const resumeExecutiveAnalysis = () => {
-        const leastPointCount = Math.min(...Object.values(candidateToCount));
-        let worstCandidates = Object.keys(candidateToCount).filter(
-            (c) => candidateToCount[c] === leastPointCount
-        );
-
-        const newVotes = [...execVotes];
-
-        worstCandidates = checkForAllTie(worstCandidates, newVotes, 0);
-
-        for (let i = 0; i < newVotes.length; i++) {
-            if (worstCandidates.includes(newVotes[i][0])) {
-                newVotes[i] = newVotes[i].slice(1);
-            }
-            newVotes[i] = newVotes[i].filter(
-                (name) => !worstCandidates.includes(name)
-            );
+            setExecVotes(newVotes);
         }
 
-        setExecVotes(newVotes);
+        setIsInit(false);
     };
 
     const checkForAllTie = (
@@ -478,9 +519,26 @@ const DashboardScreen = () => {
         return worstCandidates;
     };
 
+    const handleLogout = async () => {
+        const { error } = await supabase.auth.signOut();
+        router.push("/");
+    };
+
     return (
-        <>
-            <h1 className="text-lg font-bold">ASUC Elections Dashboard</h1>
+        <main className="w-full min-h-screen flex flex-col items-center justify-start gap-y-2 p-4">
+            {isAdmin ? (
+                <div className="md:w-4/5 w-full flex flex-row items-center justify-between">
+                    <h1 className="text-lg font-bold">Admin Dashboard</h1>
+                    <Button
+                        onClick={() => handleLogout()}
+                        variant="destructive"
+                    >
+                        Log Out
+                    </Button>
+                </div>
+            ) : (
+                <h1 className="text-lg font-bold">Elections Dashboard</h1>
+            )}
             <Setup
                 {...{
                     setFilename,
@@ -489,6 +547,7 @@ const DashboardScreen = () => {
                     setSenateWinners,
                     setCandidateToCount,
                     setVotingRounds,
+                    isAdmin,
                 }}
             />
             {positions.length > 0 && (
@@ -508,7 +567,7 @@ const DashboardScreen = () => {
             )}
 
             {!isLoading ? (
-                <div className="flex flex-col items-start justify-center md:w-1/2 w-full py-8 gap-y-4">
+                <div className="flex flex-col items-start justify-center md:w-4/5 w-full py-8 gap-y-4">
                     <div className="flex md:flex-row flex-col items-center justify-between md:gap-x-4 gap-y-4 w-full min-h-9">
                         {(Object.keys(candidateToCount).length > 0 ||
                             totalVoteCount > 0) && (
@@ -529,7 +588,7 @@ const DashboardScreen = () => {
                     </div>
 
                     <div className="flex flex-row items-start justify-center gap-x-10 w-full">
-                        <div className="flex flex-col items-center justify-center gap-y-4 w-full">
+                        <div className="flex flex-col items-center justify-center gap-y-4 w-2/3">
                             {Object.keys(candidateToCount).length > 0 ? (
                                 Object.keys(candidateToCount).map(
                                     (candidate) => (
@@ -539,6 +598,8 @@ const DashboardScreen = () => {
                                                 candidate,
                                                 candidateToCount,
                                                 currQuota,
+                                                votingRounds,
+                                                isAdmin,
                                             }}
                                         />
                                     )
@@ -554,7 +615,7 @@ const DashboardScreen = () => {
                             )}
                         </div>
 
-                        <div className="flex flex-col items-center justify-center gap-y-2 w-full">
+                        <div className="flex flex-col-reverse items-center justify-center gap-y-2 w-1/3">
                             {winner && (
                                 <ExecWinAlert
                                     {...{ winner, selectedPosition }}
@@ -573,8 +634,8 @@ const DashboardScreen = () => {
             ) : (
                 <p className="py-8">Loading...</p>
             )}
-        </>
+        </main>
     );
 };
 
-export default DashboardScreen;
+export default Dashboard;
