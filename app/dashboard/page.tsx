@@ -104,7 +104,6 @@ const Dashboard = () => {
                 },
                 (error, result) => {
                     if (error) {
-                        console.error(error);
                         return;
                     }
 
@@ -166,7 +165,6 @@ const Dashboard = () => {
                 },
                 (error, result) => {
                     if (error) {
-                        console.error(error);
                         return;
                     }
 
