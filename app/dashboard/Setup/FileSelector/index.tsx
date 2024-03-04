@@ -40,7 +40,10 @@ const FileSelector = ({
                 setCandidateToCount({});
             }}
         >
-            <SelectTrigger className="w-[300px]">
+            <SelectTrigger
+                className="w-[300px]"
+                aria-label="Select election to analyze"
+            >
                 <SelectValue placeholder="Select election to analyze" />
             </SelectTrigger>
             <SelectContent>

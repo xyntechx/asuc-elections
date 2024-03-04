@@ -60,7 +60,10 @@ const PositionSelector = ({
                         setVotingRounds([]);
                     }}
                 >
-                    <SelectTrigger className="w-[300px]">
+                    <SelectTrigger
+                        className="w-[300px]"
+                        aria-label="Select position"
+                    >
                         <SelectValue placeholder="Select position" />
                     </SelectTrigger>
                     <SelectContent>
