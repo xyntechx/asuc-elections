@@ -68,7 +68,7 @@ const UploadFile = ({ setFilelist }: IProps) => {
 
     return (
         <div className="w-full flex flex-col items-center justify-center gap-y-4">
-            <div className="w-1/2 flex flex-col items-center justify-center gap-y-2">
+            <div className="w-full md:w-1/2 flex flex-col items-center justify-center gap-y-2">
                 <Input
                     type="text"
                     placeholder="Enter filename..."
