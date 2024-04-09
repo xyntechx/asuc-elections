@@ -5,7 +5,11 @@ import { useState } from "react";
 import { Input } from "../../../../components/ui/input";
 import { Button } from "../../../../components/ui/button";
 
-export default function UploadFile() {
+interface IProps {
+    setFilelist: (f: any[] | null) => void;
+}
+
+const UploadFile = ({ setFilelist }: IProps) => {
     const supabase = createClient();
 
     const [filename, setFilename] = useState("");
@@ -38,7 +42,22 @@ export default function UploadFile() {
         setIsLoading(false);
 
         if (error) setIsUploadSuccess(2);
-        else setIsUploadSuccess(1);
+        else {
+            setIsUploadSuccess(1);
+            getFiles();
+        }
+    };
+
+    const getFiles = async () => {
+        const { data, error } = await supabase.storage
+            .from("electionResults")
+            .list("", {
+                limit: 100,
+                offset: 0,
+                sortBy: { column: "name", order: "asc" },
+            });
+
+        setFilelist(data);
     };
 
     return (
@@ -69,4 +88,6 @@ export default function UploadFile() {
             </div>
         </div>
     );
-}
+};
+
+export default UploadFile;

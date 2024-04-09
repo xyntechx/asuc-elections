@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/card";
 import UploadDrawer from "./UploadDrawer";
 import FileSelector from "./FileSelector";
+import ManageDrawer from "./ManageDrawer";
 
 interface IProps {
     setFilename: (f: string) => void;
@@ -68,10 +69,12 @@ export default function Setup({
                     </CardDescription>
                 )}
             </CardHeader>
-            <CardContent className="flex md:flex-row flex-col items-center justify-center md:gap-x-4 gap-y-2">
+            <CardContent className="flex lg:flex-row flex-col items-center justify-center lg:gap-x-4 gap-y-2">
                 {isAdmin ? (
                     <>
-                        <UploadDrawer />
+                        <UploadDrawer {...{ setFilelist }} />
+                        <b>OR</b>
+                        <ManageDrawer {...{ filelist, setFilelist }} />
                         <b>OR</b>
                         <FileSelector
                             {...{
