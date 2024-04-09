@@ -81,12 +81,15 @@ const UploadFile = ({ setFilelist }: IProps) => {
                     }
                 />
                 {isUploadSuccess === 1 && (
-                    <p className="text-green-300">
+                    <p className="text-green-400">
                         {filename} successfully uploaded!
                     </p>
                 )}
                 {isUploadSuccess === 2 && (
-                    <p className="text-red-300">Upload failed...</p>
+                    <p className="text-red-400">
+                        Upload failed... Perhaps you've uploaded a file named{" "}
+                        {filename} before.
+                    </p>
                 )}
                 <Button
                     onClick={() => handleUploadFile()}
