@@ -32,6 +32,7 @@ const UploadFile = ({ setFilelist }: IProps) => {
             return;
         }
 
+        // Upload to bucket
         const { data, error } = await supabase.storage
             .from("electionResults")
             .upload(`${filename}`, filebody, {
@@ -39,9 +40,14 @@ const UploadFile = ({ setFilelist }: IProps) => {
                 upsert: false,
             });
 
+        // Insert to table
+        const { error: err } = await supabase
+            .from("permissions")
+            .insert({ filename: filename });
+
         setIsLoading(false);
 
-        if (error) setIsUploadSuccess(2);
+        if (error || err) setIsUploadSuccess(2);
         else {
             setIsUploadSuccess(1);
             getFiles();
@@ -82,7 +88,11 @@ const UploadFile = ({ setFilelist }: IProps) => {
                 {isUploadSuccess === 2 && (
                     <p className="text-red-300">Upload failed...</p>
                 )}
-                <Button onClick={() => handleUploadFile()} disabled={isLoading}>
+                <Button
+                    onClick={() => handleUploadFile()}
+                    disabled={isLoading}
+                    className="w-[200px]"
+                >
                     {!isLoading ? "Upload" : "Uploading..."}
                 </Button>
             </div>

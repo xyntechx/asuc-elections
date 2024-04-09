@@ -34,7 +34,10 @@ const UploadDrawer = ({ setFilelist }: IProps) => {
                 <DrawerFooter className="w-full flex items-center justify-center">
                     <UploadFile {...{ setFilelist }} />
                     <DrawerClose
-                        className={buttonVariants({ variant: "outline" })}
+                        className={buttonVariants({
+                            variant: "outline",
+                            width: 200,
+                        })}
                     >
                         Close
                     </DrawerClose>

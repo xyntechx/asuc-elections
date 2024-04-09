@@ -35,7 +35,10 @@ const ManageDrawer = ({ filelist, setFilelist }: IProps) => {
                 <DrawerFooter className="w-full flex items-center justify-center">
                     <ManageFile {...{ filelist, setFilelist }} />
                     <DrawerClose
-                        className={buttonVariants({ variant: "outline" })}
+                        className={buttonVariants({
+                            variant: "outline",
+                            width: 200,
+                        })}
                     >
                         Close
                     </DrawerClose>

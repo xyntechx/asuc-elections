@@ -78,26 +78,26 @@ export default function Setup({
                         <b>OR</b>
                         <FileSelector
                             {...{
-                                filelist,
                                 setFilename,
                                 setSelectedPosition,
                                 setWinner,
                                 setSenateWinners,
                                 setCandidateToCount,
                                 setVotingRounds,
+                                isAdmin,
                             }}
                         />
                     </>
                 ) : (
                     <FileSelector
                         {...{
-                            filelist,
                             setFilename,
                             setSelectedPosition,
                             setWinner,
                             setSenateWinners,
                             setCandidateToCount,
                             setVotingRounds,
+                            isAdmin,
                         }}
                     />
                 )}
