@@ -1,7 +1,16 @@
 import { buttonVariants } from "@/components/ui/button";
+import { createClient } from "@/utils/supabase/server";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 
-const Home = () => {
+const Home = async () => {
+    const supabase = createClient();
+
+    const { data, error } = await supabase.auth.getUser();
+    if (!error && data?.user) {
+        redirect("/dashboard");
+    }
+
     return (
         <main className="w-full min-h-screen flex flex-col items-center justify-center gap-y-2 p-4">
             <h1 className="text-lg font-bold">ASUC Elections Dashboard</h1>
