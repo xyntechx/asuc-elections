@@ -9,30 +9,31 @@ import {
     DrawerTrigger,
 } from "@/components/ui/drawer";
 import { buttonVariants } from "../../../../components/ui/button";
-import UploadFile from "./UploadFile";
+import ManageFile from "./ManageFile";
 
 interface IProps {
+    filelist: any[] | null;
     setFilelist: (f: any[] | null) => void;
 }
 
-const UploadDrawer = ({ setFilelist }: IProps) => {
+const ManageDrawer = ({ filelist, setFilelist }: IProps) => {
     return (
         <Drawer>
             <DrawerTrigger
                 className={buttonVariants({ variant: "outline", width: 300 })}
             >
-                Upload election results
+                Manage files
             </DrawerTrigger>
             <DrawerContent>
                 <DrawerHeader>
-                    <DrawerTitle>Upload Election Results</DrawerTitle>
+                    <DrawerTitle>Manage Election Results</DrawerTitle>
                     <DrawerDescription>
-                        Upload the CSV file containing all the votes of an
+                        Manage the CSV files containing all the votes of an
                         election.
                     </DrawerDescription>
                 </DrawerHeader>
                 <DrawerFooter className="w-full flex items-center justify-center">
-                    <UploadFile {...{ setFilelist }} />
+                    <ManageFile {...{ filelist, setFilelist }} />
                     <DrawerClose
                         className={buttonVariants({
                             variant: "outline",
@@ -47,4 +48,4 @@ const UploadDrawer = ({ setFilelist }: IProps) => {
     );
 };
 
-export default UploadDrawer;
+export default ManageDrawer;

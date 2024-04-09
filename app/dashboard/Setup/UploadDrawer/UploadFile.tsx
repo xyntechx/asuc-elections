@@ -5,7 +5,11 @@ import { useState } from "react";
 import { Input } from "../../../../components/ui/input";
 import { Button } from "../../../../components/ui/button";
 
-export default function UploadFile() {
+interface IProps {
+    setFilelist: (f: any[] | null) => void;
+}
+
+const UploadFile = ({ setFilelist }: IProps) => {
     const supabase = createClient();
 
     const [filename, setFilename] = useState("");
@@ -28,6 +32,7 @@ export default function UploadFile() {
             return;
         }
 
+        // Upload to bucket
         const { data, error } = await supabase.storage
             .from("electionResults")
             .upload(`${filename}`, filebody, {
@@ -35,10 +40,30 @@ export default function UploadFile() {
                 upsert: false,
             });
 
+        // Insert to table
+        const { error: err } = await supabase
+            .from("permissions")
+            .insert({ filename: filename });
+
         setIsLoading(false);
 
-        if (error) setIsUploadSuccess(2);
-        else setIsUploadSuccess(1);
+        if (error || err) setIsUploadSuccess(2);
+        else {
+            setIsUploadSuccess(1);
+            getFiles();
+        }
+    };
+
+    const getFiles = async () => {
+        const { data, error } = await supabase.storage
+            .from("electionResults")
+            .list("", {
+                limit: 100,
+                offset: 0,
+                sortBy: { column: "name", order: "asc" },
+            });
+
+        setFilelist(data);
     };
 
     return (
@@ -56,17 +81,26 @@ export default function UploadFile() {
                     }
                 />
                 {isUploadSuccess === 1 && (
-                    <p className="text-green-300">
+                    <p className="text-green-400">
                         {filename} successfully uploaded!
                     </p>
                 )}
                 {isUploadSuccess === 2 && (
-                    <p className="text-red-300">Upload failed...</p>
+                    <p className="text-red-400">
+                        Upload failed... Perhaps you've uploaded a file named{" "}
+                        {filename} before.
+                    </p>
                 )}
-                <Button onClick={() => handleUploadFile()} disabled={isLoading}>
+                <Button
+                    onClick={() => handleUploadFile()}
+                    disabled={isLoading}
+                    className="w-[200px]"
+                >
                     {!isLoading ? "Upload" : "Uploading..."}
                 </Button>
             </div>
         </div>
     );
-}
+};
+
+export default UploadFile;

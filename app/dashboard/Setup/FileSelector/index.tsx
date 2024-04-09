@@ -1,3 +1,7 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { createClient } from "@/utils/supabase/client";
 import {
     Select,
     SelectContent,
@@ -7,7 +11,6 @@ import {
 } from "@/components/ui/select";
 
 interface IProps {
-    filelist: any[] | null;
     setFilename: (newName: string) => void;
     setSelectedPosition: (p: string) => void;
     setWinner: (w: string | null) => void;
@@ -18,17 +21,46 @@ interface IProps {
     ) => void;
     setSenateWinners: (w: string[]) => void;
     setCandidateToCount: (obj: { [key: string]: number }) => void;
+    isAdmin: boolean;
 }
 
 const FileSelector = ({
-    filelist,
     setFilename,
     setSelectedPosition,
     setWinner,
     setVotingRounds,
     setSenateWinners,
     setCandidateToCount,
+    isAdmin,
 }: IProps) => {
+    const supabase = createClient();
+
+    const [files, setFiles] = useState<string[]>([]);
+
+    useEffect(() => {
+        const getPublicFiles = async () => {
+            const { data, error } = await supabase
+                .from("permissions")
+                .select("filename")
+                .eq("isPublic", true)
+                .order("filename", { ascending: true });
+
+            if (!error) setFiles(data.map((f) => f.filename));
+        };
+
+        const getAllFiles = async () => {
+            const { data, error } = await supabase
+                .from("permissions")
+                .select("filename")
+                .order("filename", { ascending: true });
+
+            if (!error) setFiles(data.map((f) => f.filename));
+        };
+
+        if (isAdmin) getAllFiles();
+        else getPublicFiles();
+    }, []);
+
     return (
         <Select
             onValueChange={(filename) => {
@@ -47,12 +79,11 @@ const FileSelector = ({
                 <SelectValue placeholder="Select election to analyze" />
             </SelectTrigger>
             <SelectContent>
-                {filelist &&
-                    filelist.map((f) => (
-                        <SelectItem key={f.id} value={f.name}>
-                            {f.name}
-                        </SelectItem>
-                    ))}
+                {files.map((f) => (
+                    <SelectItem key={f} value={f}>
+                        {f}
+                    </SelectItem>
+                ))}
             </SelectContent>
         </Select>
     );
