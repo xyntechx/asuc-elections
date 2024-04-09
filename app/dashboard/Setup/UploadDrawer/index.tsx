@@ -8,7 +8,7 @@ import {
     DrawerTitle,
     DrawerTrigger,
 } from "@/components/ui/drawer";
-import { Button, buttonVariants } from "../../../../components/ui/button";
+import { buttonVariants } from "../../../../components/ui/button";
 import UploadFile from "./UploadFile";
 
 const UploadDrawer = () => {
@@ -27,10 +27,12 @@ const UploadDrawer = () => {
                         election.
                     </DrawerDescription>
                 </DrawerHeader>
-                <DrawerFooter>
+                <DrawerFooter className="w-full flex items-center justify-center">
                     <UploadFile />
-                    <DrawerClose>
-                        <Button variant="outline">Close</Button>
+                    <DrawerClose
+                        className={buttonVariants({ variant: "outline" })}
+                    >
+                        Close
                     </DrawerClose>
                 </DrawerFooter>
             </DrawerContent>
