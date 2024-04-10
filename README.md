@@ -5,10 +5,10 @@ Analyze and visualize ASUC election outcomes
 Run locally
 ```bash
 pnpm i
-pnpm run dev
+pnpm dev
 ```
 
 Build app
 ```bash
-pnpm run build
+pnpm build
 ```
