@@ -79,11 +79,19 @@ const FileSelector = ({
                 <SelectValue placeholder="Select election to analyze" />
             </SelectTrigger>
             <SelectContent>
-                {files.map((f) => (
-                    <SelectItem key={f} value={f}>
-                        {f}
+                {files.length > 0 ? (
+                    <>
+                        {files.map((f) => (
+                            <SelectItem key={f} value={f}>
+                                {f}
+                            </SelectItem>
+                        ))}
+                    </>
+                ) : (
+                    <SelectItem disabled={true} value="NIL">
+                        No Elections Available
                     </SelectItem>
-                ))}
+                )}
             </SelectContent>
         </Select>
     );
