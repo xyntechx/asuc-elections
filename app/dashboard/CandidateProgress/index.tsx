@@ -1,5 +1,6 @@
 import { Progress } from "@/components/ui/progress";
 import { ProgressGradual } from "@/components/ui/progress-gradual";
+import { useEffect } from "react";
 import CountUp from "react-countup";
 
 interface IProps {
