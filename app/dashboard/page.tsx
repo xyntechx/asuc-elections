@@ -560,6 +560,11 @@ const Dashboard = () => {
                         setUnfilledSenateSeatCount,
                         setCandidateToCount,
                         setVotingRounds,
+                        setIsInit,
+                        setExecVotes,
+                        setSenateVotes,
+                        setTotalVoteCount,
+                        setCurrQuota,
                     }}
                 />
             )}

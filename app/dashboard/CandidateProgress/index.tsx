@@ -1,5 +1,6 @@
 import { Progress } from "@/components/ui/progress";
 import { ProgressGradual } from "@/components/ui/progress-gradual";
+import { useEffect } from "react";
 import CountUp from "react-countup";
 
 interface IProps {
@@ -21,6 +22,7 @@ const CandidateProgress = ({
     votingRounds,
     isAdmin,
 }: IProps) => {
+    useEffect(() => console.log(candidate), [candidate])
     return (
         <div className="w-full flex flex-col items-center justify-center gap-y-1">
             <div className="flex flex-row items-center justify-between w-full">
