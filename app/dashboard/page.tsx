@@ -596,7 +596,9 @@ const Dashboard = () => {
                                 Object.keys(candidateToCount).map(
                                     (candidate) => (
                                         <CandidateProgress
-                                            key={candidate}
+                                            key={Object.keys(
+                                                candidateToCount
+                                            ).indexOf(candidate)}
                                             {...{
                                                 candidate,
                                                 candidateToCount,
