@@ -51,7 +51,7 @@ const CandidateProgress = ({
                                     100
                             ) / 100
                         }
-                        duration={10}
+                        duration={5}
                         decimals={2}
                         suffix={` out of ${
                             Math.round((currQuota + Number.EPSILON) * 100) / 100
@@ -82,7 +82,7 @@ const CandidateProgress = ({
                         ? Math.round((currQuota + Number.EPSILON) * 100) / 100
                         : 1
                 }
-                duration={isAdmin ? 1 : 10}
+                duration={isAdmin ? 0 : 5}
             />
         </div>
     );
