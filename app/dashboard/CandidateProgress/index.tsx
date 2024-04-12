@@ -1,6 +1,4 @@
-import { Progress } from "@/components/ui/progress";
-import { ProgressGradual } from "@/components/ui/progress-gradual";
-import { useEffect } from "react";
+import { useCountUp } from "use-count-up";
 import CountUp from "react-countup";
 
 interface IProps {
@@ -53,7 +51,7 @@ const CandidateProgress = ({
                                     100
                             ) / 100
                         }
-                        duration={5}
+                        duration={10}
                         decimals={2}
                         suffix={` out of ${
                             Math.round((currQuota + Number.EPSILON) * 100) / 100
@@ -62,23 +60,60 @@ const CandidateProgress = ({
                     />
                 )}
             </div>
-            {isAdmin ? (
-                <Progress
-                    value={Math.min(
-                        (candidateToCount[candidate] / currQuota) * 100,
-                        100
-                    )}
-                />
-            ) : (
-                <ProgressGradual
-                    value={Math.min(
-                        (candidateToCount[candidate] / currQuota) * 100,
-                        100
-                    )}
-                />
-            )}
+            <ProgressBar
+                start={
+                    votingRounds.length > 1
+                        ? Math.round(
+                              (votingRounds[votingRounds.length - 2][
+                                  candidate
+                              ] +
+                                  Number.EPSILON) *
+                                  100
+                          ) / 100
+                        : 0
+                }
+                end={
+                    Math.round(
+                        (candidateToCount[candidate] + Number.EPSILON) * 100
+                    ) / 100
+                }
+                total={
+                    currQuota > 0
+                        ? Math.round((currQuota + Number.EPSILON) * 100) / 100
+                        : 1
+                }
+                duration={isAdmin ? 1 : 10}
+            />
         </div>
     );
 };
 
 export default CandidateProgress;
+
+interface IProgressProps {
+    start: number;
+    end: number;
+    total: number;
+    duration: number;
+}
+
+const ProgressBar = ({ start, end, total, duration }: IProgressProps) => {
+    const { value } = useCountUp({
+        isCounting: true,
+        start,
+        end,
+        duration,
+        easing: "linear",
+    });
+
+    return (
+        <div className="w-full h-[10px] bg-gray-300 rounded-md">
+            <div
+                className="h-full bg-black rounded-md"
+                style={{
+                    width: `${Math.min((Number(value) / total) * 100, 100)}%`,
+                }}
+            ></div>
+        </div>
+    );
+};
