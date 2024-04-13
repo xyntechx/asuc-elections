@@ -277,31 +277,22 @@ const Dashboard = () => {
             setUnfilledSenateSeatCount(
                 unfilledSenateSeatCount - newWinners.length
             );
-        }
-    }, [candidateToCount, selectedPosition, votingRounds]);
+        } else {
+            // For executive races
+            if (Object.keys(candidateToCount).length === 1) {
+                setWinner(Object.keys(candidateToCount)[0]);
+            }
 
-    useEffect(() => {
-        const duration = isAdmin ? 0 : 5000;
+            for (const candidate in candidateToCount) {
+                const points = candidateToCount[candidate];
 
-        const timeoutID = setTimeout(() => {
-            if (selectedPosition !== "Senate") {
-                if (Object.keys(candidateToCount).length === 1) {
-                    setWinner(Object.keys(candidateToCount)[0]);
-                }
-
-                for (const candidate in candidateToCount) {
-                    const points = candidateToCount[candidate];
-
-                    if (points >= currQuota) {
-                        setWinner(candidate);
-                        return;
-                    }
+                if (points >= currQuota) {
+                    setWinner(candidate);
+                    return;
                 }
             }
-        }, duration);
-
-        return () => clearTimeout(timeoutID);
-    }, [candidateToCount, selectedPosition]);
+        }
+    }, [candidateToCount, selectedPosition, votingRounds]);
 
     const handleSenateRace = () => {
         const currCandidateToCount: { [key: string]: number } = {};
