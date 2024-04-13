@@ -246,46 +246,38 @@ const Dashboard = () => {
         )
             return;
 
-        const duration = isAdmin ? 0 : 5000;
+        if (selectedPosition === "Senate") {
+            // For senate races
+            const newWinners = [];
 
-        const timeoutID = setTimeout(() => {
-            if (selectedPosition === "Senate") {
-                const newWinners = [];
+            if (
+                Object.keys(candidateToCount).length <= unfilledSenateSeatCount
+            ) {
+                setSenateWinners([
+                    ...senateWinners,
+                    ...Object.keys(sortDescCandidateToCount(candidateToCount)),
+                ]);
 
-                if (
-                    Object.keys(candidateToCount).length <=
-                    unfilledSenateSeatCount
-                ) {
-                    setSenateWinners([
-                        ...senateWinners,
-                        ...Object.keys(
-                            sortDescCandidateToCount(candidateToCount)
-                        ),
-                    ]);
+                setUnfilledSenateSeatCount(0);
+                setCandidateToCount({});
 
-                    setUnfilledSenateSeatCount(0);
-                    setCandidateToCount({});
-
-                    return;
-                }
-
-                for (const candidate in candidateToCount) {
-                    const points = candidateToCount[candidate];
-
-                    if (points >= currQuota) {
-                        newWinners.push(candidate);
-                    }
-                }
-
-                setSenateWinners([...senateWinners, ...newWinners]);
-                setNewSenateWinners(newWinners);
-                setUnfilledSenateSeatCount(
-                    unfilledSenateSeatCount - newWinners.length
-                );
+                return;
             }
-        }, duration);
 
-        return () => clearTimeout(timeoutID);
+            for (const candidate in candidateToCount) {
+                const points = candidateToCount[candidate];
+
+                if (points >= currQuota) {
+                    newWinners.push(candidate);
+                }
+            }
+
+            setSenateWinners([...senateWinners, ...newWinners]);
+            setNewSenateWinners(newWinners);
+            setUnfilledSenateSeatCount(
+                unfilledSenateSeatCount - newWinners.length
+            );
+        }
     }, [candidateToCount, selectedPosition, votingRounds]);
 
     useEffect(() => {
@@ -315,7 +307,7 @@ const Dashboard = () => {
         }, duration);
 
         return () => clearTimeout(timeoutID);
-    }, [candidateToCount, selectedPosition, votingRounds]);
+    }, [candidateToCount, selectedPosition]);
 
     const handleSenateRace = () => {
         const currCandidateToCount: { [key: string]: number } = {};
