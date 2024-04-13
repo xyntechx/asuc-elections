@@ -281,12 +281,6 @@ const Dashboard = () => {
     }, [candidateToCount, selectedPosition, votingRounds]);
 
     useEffect(() => {
-        if (
-            votingRounds.length === 0 ||
-            Object.keys(candidateToCount).length === 0
-        )
-            return;
-
         const duration = isAdmin ? 0 : 5000;
 
         const timeoutID = setTimeout(() => {
