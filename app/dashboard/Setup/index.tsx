@@ -25,6 +25,7 @@ interface IProps {
         }[]
     ) => void;
     isAdmin: boolean;
+    setShowTable: (showTable: boolean) => void;
 }
 
 export default function Setup({
@@ -35,6 +36,7 @@ export default function Setup({
     setCandidateToCount,
     setVotingRounds,
     isAdmin,
+    setShowTable,
 }: IProps) {
     const supabase = createClient();
     const [filelist, setFilelist] = useState<any[] | null>(null);
@@ -85,6 +87,7 @@ export default function Setup({
                                 setCandidateToCount,
                                 setVotingRounds,
                                 isAdmin,
+                                setShowTable,
                             }}
                         />
                     </>
@@ -98,6 +101,7 @@ export default function Setup({
                             setCandidateToCount,
                             setVotingRounds,
                             isAdmin,
+                            setShowTable,
                         }}
                     />
                 )}

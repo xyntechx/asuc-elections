@@ -13,13 +13,12 @@ interface IProps {
     selectedPosition: string;
     totalVoteCount: number;
     currQuota: number;
-    votingRounds: {
-        [key: string]: number;
-    }[];
     winner: string | null;
     unfilledSenateSeatCount: number;
     resumeExecutiveAnalysis: () => void;
     resumeSenateAnalysis: () => void;
+    showTable: boolean;
+    setShowTable: (showTable: boolean) => void;
 }
 
 const Controls = ({
@@ -27,11 +26,12 @@ const Controls = ({
     selectedPosition,
     totalVoteCount,
     currQuota,
-    votingRounds,
     winner,
     unfilledSenateSeatCount,
     resumeExecutiveAnalysis,
     resumeSenateAnalysis,
+    showTable,
+    setShowTable,
 }: IProps) => {
     return (
         <>
@@ -86,25 +86,46 @@ const Controls = ({
                 )}
             </div>
 
-            {selectedPosition !== "Senate" &&
-                !winner && (
-                    <Button
-                        onClick={() => resumeExecutiveAnalysis()}
-                        className="bg-blue-600 hover:bg-blue-600/90 flex flex-row items-center justify-center gap-x-2 md:w-fit w-full"
-                    >
-                        <PlayIcon /> Resume
-                    </Button>
-                )}
+            {selectedPosition !== "Senate" && !winner && (
+                <Button
+                    onClick={() => resumeExecutiveAnalysis()}
+                    className="bg-blue-600 hover:bg-blue-600/90 flex flex-row items-center justify-center gap-x-2 md:w-fit w-full"
+                >
+                    <PlayIcon /> Resume
+                </Button>
+            )}
 
-            {selectedPosition === "Senate" &&
-                unfilledSenateSeatCount > 0 && (
-                    <Button
-                        onClick={() => resumeSenateAnalysis()}
-                        className="bg-blue-600 hover:bg-blue-600/90 flex flex-row items-center justify-center gap-x-2 md:w-fit w-full"
-                    >
-                        <PlayIcon /> Resume
-                    </Button>
-                )}
+            {selectedPosition === "Senate" && unfilledSenateSeatCount > 0 && (
+                <Button
+                    onClick={() => resumeSenateAnalysis()}
+                    className="bg-blue-600 hover:bg-blue-600/90 flex flex-row items-center justify-center gap-x-2 md:w-fit w-full"
+                >
+                    <PlayIcon /> Resume
+                </Button>
+            )}
+
+            {((selectedPosition !== "Senate" && winner) ||
+                (selectedPosition === "Senate" &&
+                    unfilledSenateSeatCount === 0)) && (
+                <>
+                    {showTable ? (
+                        <Button
+                            onClick={() => setShowTable(!showTable)}
+                            variant="destructive"
+                            className="flex flex-row items-center justify-center gap-x-2 w-[100px]"
+                        >
+                            Close Table
+                        </Button>
+                    ) : (
+                        <Button
+                            onClick={() => setShowTable(!showTable)}
+                            className="bg-green-600 hover:bg-green-600/90 flex flex-row items-center justify-center gap-x-2 w-[100px]"
+                        >
+                            View Table
+                        </Button>
+                    )}
+                </>
+            )}
         </>
     );
 };

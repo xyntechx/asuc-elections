@@ -22,6 +22,7 @@ interface IProps {
     setSenateWinners: (w: string[]) => void;
     setCandidateToCount: (obj: { [key: string]: number }) => void;
     isAdmin: boolean;
+    setShowTable: (showTable: boolean) => void;
 }
 
 const FileSelector = ({
@@ -32,6 +33,7 @@ const FileSelector = ({
     setSenateWinners,
     setCandidateToCount,
     isAdmin,
+    setShowTable,
 }: IProps) => {
     const supabase = createClient();
 
@@ -70,6 +72,7 @@ const FileSelector = ({
                 setVotingRounds([]);
                 setSenateWinners([]);
                 setCandidateToCount({});
+                setShowTable(false);
             }}
         >
             <SelectTrigger

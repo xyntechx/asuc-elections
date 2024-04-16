@@ -32,6 +32,7 @@ interface IProps {
     setSenateVotes: (v: any) => void;
     setTotalVoteCount: (n: number) => void;
     setCurrQuota: (n: number) => void;
+    setShowTable: (showTable: boolean) => void;
 }
 
 const PositionSelector = ({
@@ -49,6 +50,7 @@ const PositionSelector = ({
     setSenateVotes,
     setTotalVoteCount,
     setCurrQuota,
+    setShowTable,
 }: IProps) => {
     return (
         <Card className="md:w-4/5 w-full">
@@ -73,6 +75,7 @@ const PositionSelector = ({
                         setSenateVotes([]);
                         setTotalVoteCount(0);
                         setCurrQuota(0);
+                        setShowTable(false);
                     }}
                 >
                     <SelectTrigger

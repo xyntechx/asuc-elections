@@ -11,6 +11,7 @@ import Controls from "./Controls";
 import CandidateProgress from "./CandidateProgress";
 import ExecWinAlert from "./WinAlerts/ExecWinAlert";
 import SenateWinAlert from "./WinAlerts/SenateWinAlert";
+import SummaryTable from "./SummaryTable";
 
 interface ISenateVote {
     candidate: string;
@@ -46,6 +47,8 @@ const Dashboard = () => {
     const [senateWinners, setSenateWinners] = useState<string[]>([]);
     const [newSenateWinners, setNewSenateWinners] = useState<string[]>([]);
     const [unfilledSenateSeatCount, setUnfilledSenateSeatCount] = useState(20);
+
+    const [showTable, setShowTable] = useState(false);
 
     const [isLoading, setIsLoading] = useState(false);
 
@@ -546,6 +549,7 @@ const Dashboard = () => {
                     setCandidateToCount,
                     setVotingRounds,
                     isAdmin,
+                    setShowTable,
                 }}
             />
             {positions.length > 0 && (
@@ -565,6 +569,7 @@ const Dashboard = () => {
                         setSenateVotes,
                         setTotalVoteCount,
                         setCurrQuota,
+                        setShowTable,
                     }}
                 />
             )}
@@ -585,53 +590,69 @@ const Dashboard = () => {
                                     unfilledSenateSeatCount,
                                     resumeExecutiveAnalysis,
                                     resumeSenateAnalysis,
+                                    showTable,
+                                    setShowTable,
                                 }}
                             />
                         )}
                     </div>
 
                     <div className="flex flex-row items-start justify-center gap-x-10 w-full">
-                        <div className="flex flex-col items-center justify-center gap-y-4 w-2/3">
-                            {Object.keys(candidateToCount).length > 0 ? (
-                                Object.keys(candidateToCount).map(
-                                    (candidate) => (
-                                        <CandidateProgress
-                                            key={candidate}
-                                            {...{
-                                                candidate,
-                                                candidateToCount,
-                                                currQuota,
-                                                votingRounds,
-                                                isAdmin,
-                                            }}
-                                        />
-                                    )
-                                )
-                            ) : (
-                                <>
-                                    {totalVoteCount > 0 && (
-                                        <p className="w-full text-left text-gray-500">
-                                            No candidates left to be analyzed
-                                        </p>
+                        {!showTable ? (
+                            <>
+                                <div className="flex flex-col items-center justify-center gap-y-4 w-2/3">
+                                    {Object.keys(candidateToCount).length >
+                                    0 ? (
+                                        Object.keys(candidateToCount).map(
+                                            (candidate) => (
+                                                <CandidateProgress
+                                                    key={candidate}
+                                                    {...{
+                                                        candidate,
+                                                        candidateToCount,
+                                                        currQuota,
+                                                        votingRounds,
+                                                        isAdmin,
+                                                    }}
+                                                />
+                                            )
+                                        )
+                                    ) : (
+                                        <>
+                                            {totalVoteCount > 0 && (
+                                                <p className="w-full text-left text-gray-500">
+                                                    No candidates left to be
+                                                    analyzed
+                                                </p>
+                                            )}
+                                        </>
                                     )}
-                                </>
-                            )}
-                        </div>
+                                </div>
 
-                        <div className="flex flex-col-reverse items-center justify-center gap-y-2 w-1/3">
-                            {winner && (
-                                <ExecWinAlert
-                                    {...{ winner, selectedPosition }}
-                                />
-                            )}
-                            {senateWinners.length > 0 &&
-                                senateWinners.map((winner) => (
-                                    <SenateWinAlert
-                                        key={winner}
-                                        {...{ winner, senateWinners }}
-                                    />
-                                ))}
-                        </div>
+                                <div className="flex flex-col-reverse items-center justify-center gap-y-2 w-1/3">
+                                    {winner && (
+                                        <ExecWinAlert
+                                            {...{ winner, selectedPosition }}
+                                        />
+                                    )}
+                                    {senateWinners.length > 0 &&
+                                        senateWinners.map((winner) => (
+                                            <SenateWinAlert
+                                                key={winner}
+                                                {...{ winner, senateWinners }}
+                                            />
+                                        ))}
+                                </div>
+                            </>
+                        ) : (
+                            <SummaryTable
+                                {...{
+                                    selectedPosition,
+                                    votingRounds,
+                                    currQuota,
+                                }}
+                            />
+                        )}
                     </div>
                 </div>
             ) : (
