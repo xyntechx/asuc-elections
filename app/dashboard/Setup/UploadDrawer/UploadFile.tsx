@@ -34,7 +34,7 @@ const UploadFile = ({ setFilelist }: IProps) => {
 
         // Upload to bucket
         const { data, error } = await supabase.storage
-            .from("electionResults")
+            .from("electionresults")
             .upload(`${filename}`, filebody, {
                 cacheControl: "3600",
                 upsert: false,
@@ -56,7 +56,7 @@ const UploadFile = ({ setFilelist }: IProps) => {
 
     const getFiles = async () => {
         const { data, error } = await supabase.storage
-            .from("electionResults")
+            .from("electionresults")
             .list("", {
                 limit: 100,
                 offset: 0,

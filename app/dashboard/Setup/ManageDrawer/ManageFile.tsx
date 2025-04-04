@@ -28,7 +28,7 @@ const ManageFile = ({ filelist, setFilelist }: IProps) => {
     const handleDelete = async (filename: string) => {
         // Delete from bucket
         const { data, error } = await supabase.storage
-            .from("electionResults")
+            .from("electionresults")
             .remove([`${filename}`]);
 
         // Delete from table

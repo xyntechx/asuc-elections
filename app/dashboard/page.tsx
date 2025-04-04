@@ -70,7 +70,7 @@ const Dashboard = () => {
             setIsLoading(true);
 
             const { data, error } = await supabase.storage
-                .from("electionResults")
+                .from("electionresults")
                 .download(`${filename}`);
 
             setFileblob(data);

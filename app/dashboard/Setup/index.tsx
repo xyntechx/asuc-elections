@@ -44,7 +44,7 @@ export default function Setup({
     useEffect(() => {
         const getData = async () => {
             const { data, error } = await supabase.storage
-                .from("electionResults")
+                .from("electionresults")
                 .list("", {
                     limit: 100,
                     offset: 0,
